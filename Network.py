@@ -1,5 +1,7 @@
 #https://www.youtube.com/watch?v=Z7YM-HAz-IY
 
+#https://towardsdatascience.com/audio-ai-isolating-vocals-from-stereo-music-using-convolutional-neural-networks-210532383785
+
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
