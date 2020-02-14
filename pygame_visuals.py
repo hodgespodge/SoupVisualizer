@@ -8,9 +8,9 @@ stem_dir = '5stems'
 song = 'No Surprises'
 instrument = 'bass'
 
-song_instrument = song + "_" + instrument + ".wav"
+song_instrument = song + "_" + instrument + "_16-bit.wav"
 
-file_name = os.path.join('SpleeterOutputs',
+file_name = os.path.join('SpleeterOutputs_16-bit',
                                  stem_dir,
                                  song_instrument)
 
