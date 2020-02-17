@@ -4,8 +4,8 @@ from numpy import fft
 import pygame, sys, time, os
 
 
-stem_dir = '2stems'
-song = 'No Surprises'
+stem_dir = '5stems'
+song = 'Let It Be'
 instrument = 'vocals'
 
 song_instrument = song + "_" + instrument + "_16-bit.wav"
@@ -16,8 +16,8 @@ file_name = os.path.join('SpleeterOutputs_16-bit',
 
 def main():
     # graphic interface dimensions
-    width, height = 420, 360
-    center = [width / 2, height / 2]
+    width, height = 840, 720
+    center = [width // 2, height // 2]
 
     # read amplitude and frequency of music file with defined frame skips
 
@@ -50,8 +50,12 @@ def main():
 
         # circular animation: radius of circle depends on magnitude amplitude and color of circle depends on frequency
         try:
-            pygame.draw.circle(screen, [(frequency[i] * 2) % 255, (frequency[i] * 3) % 255, (frequency[i] * 5) % 255],
-                               center, amplitude[i], 1)
+            pygame.draw.circle(screen,
+                               [(frequency[i] * 2) % 255,(frequency[i] * 3) % 255,(frequency[i] * 5) % 255],
+                               center,
+                               amplitude[i],
+                               1)
+
         except ValueError:
             pass
 
