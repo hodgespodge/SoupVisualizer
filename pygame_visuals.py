@@ -4,9 +4,9 @@ from numpy import fft
 import pygame, sys, time, os
 
 
-stem_dir = '5stems'
+stem_dir = '2stems'
 song = 'No Surprises'
-instrument = 'bass'
+instrument = 'vocals'
 
 song_instrument = song + "_" + instrument + "_16-bit.wav"
 
