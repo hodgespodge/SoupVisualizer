@@ -1,20 +1,24 @@
-from scipy.io import wavfile
 import numpy as np
-from scipy import signal
-import cv2
-import matplotlib.pyplot as plt
-from sklearn import preprocessing
+import parselmouth
+import crepe
+import os
 
 np.set_printoptions(precision=3,edgeitems=5,suppress=True,linewidth=50)
 
-def find_fundamental_frequency_of_tone(freqs, times, spectro):
-    return spectro
+def get_fundemental_frequency(wav_file_path):
+    snd = parselmouth.Sound(wav_file_path)
 
-'''
-As far as I can tell, spacing on harmonics determins the fundemental frequency.
-The challenge then is in identifying the spacing, finding the fundemental frequency, 
-then elimating the other tones. 
+    print("seconds of song * 44100 = ",len(snd))
+    return snd.to_pitch()
 
+def get_crepe_confidence(audio,rate=44100,step_size= 50):
 
+    return crepe.predict(audio, rate,step_size=step_size, viterbi=True)
 
-'''
+def create_16_bit_wav(songname):
+    import wavio
+    from scipy.io import wavfile
+
+    rate, audio = wavfile.read("TestSongs/"+songname+".wav")
+
+    wavio.write("TestSongs/16bit/"+songname+"_16.wav", audio.astype(np.int16), rate, sampwidth=2)
