@@ -94,17 +94,19 @@ def main():
 
         color = [100, 200, 255]
 
-        drum_hit = abs((drum_amplitude[int(t * 44100)][0] + drum_amplitude[int(t * 44100)][1])//200)
+        try:
+            drum_hit = abs((drum_amplitude[int(t * 44100)][0] + drum_amplitude[int(t * 44100)][1])//200)
 
-        # print(int(t * 44100))
-        if drum_hit > 30:
+            # print(int(t * 44100))
+            if drum_hit > 30:
 
-            pygame.draw.circle(screen,
-                               color,
-                               (int(width / 3), int(3 * height / 4)),
-                               drum_hit,
-                               0)
-
+                pygame.draw.circle(screen,
+                                   color,
+                                   (int(width / 3), int(3 * height / 4)),
+                                   drum_hit,
+                                   0)
+        except:
+            pass
 
 
     for i,t in enumerate(crepe_vocal_time):
