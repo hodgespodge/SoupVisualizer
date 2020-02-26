@@ -3,7 +3,6 @@ from random import randint
 from numpy import fft
 import pygame, sys, time, os
 from PreprocessingFunctions import *
-import parselmouth
 import crepe
 import scipy.signal
 
@@ -61,6 +60,11 @@ def main():
     for i in range(len(vocal_amplitude)):
         vocal_amplitude[i] = float(vocal_amplitude[i]) / max_amplitude * height / 4 + height / 2
     vocal_amplitude = [int(height / 2)] * width + list(vocal_amplitude)
+
+    while(True): #Wait for user to specify run
+        play =  input()
+        if play == "1":
+            break
 
     pygame.init()
     screen = pygame.display.set_mode([width, height])
