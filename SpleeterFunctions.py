@@ -6,7 +6,7 @@ import wavio
 import os
 def spleet_wav(songpath,outfolder,num_stems):
 
-    rate, audio = wavfile.read(songpath + ".wav")
+    rate, audio = wavfile.read(songpath)
     songname = os.path.basename(os.path.normpath(songpath))
 
     warnings.filterwarnings('ignore')

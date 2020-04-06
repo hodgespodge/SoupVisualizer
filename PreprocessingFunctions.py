@@ -16,13 +16,16 @@ def get_crepe_confidence(audio,rate=44100,step_size= 50):
 
     return crepe.predict(audio, rate,step_size=step_size, viterbi=True)
 
-def create_16_bit_wav(songname):
+def create_16_bit_wav(songpath,outpath):
+    print("running create 16 bit wav")
     import wavio
     from scipy.io import wavfile
 
-    rate, audio = wavfile.read("TestSongs/"+songname+".wav")
+    rate, audio = wavfile.read(songpath)
 
-    wavio.write("TestSongs/16bit/"+songname+"_16.wav", audio.astype(np.int16), rate, sampwidth=2)
+    print("creating 16_bit wav file at",outpath)
+
+    wavio.write(outpath, audio.astype(np.int16), rate, sampwidth=2)
 
 def wav_to_mp3(songpath,outpath):
     from pydub import AudioSegment

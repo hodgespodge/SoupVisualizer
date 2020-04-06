@@ -1,4 +1,5 @@
 from pygame_visuals import *
+from SpleeterFunctions import *
 
 from PyQt5.QtGui import QIcon
 
@@ -21,19 +22,6 @@ class Example(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
-
-    # def closeEvent(self, event):
-    #
-    #     #TODO make it end the pygame animation
-    #
-    #     reply = QMessageBox.question(self, '',
-    #                                  "Are you sure you want to quit?", QMessageBox.Yes |
-    #                                  QMessageBox.No, QMessageBox.No)
-    #
-    #     if reply == QMessageBox.Yes:
-    #         event.accept()
-    #     else:
-    #         event.ignore()
 
     def initUI(self):
         self.setGeometry(500, 500, 300, 220)
@@ -100,18 +88,27 @@ class Example(QMainWindow):
             song_path = fileName
             song = os.path.basename(fileName)
 
-            print(os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song))
-
             if os.path.isfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)):
 
                 reply = QMessageBox.question(self, '',
-                                             "Song file has already been pre-processed. Would you like to process again?",
+                                             "Song file has already been pre-processed. Would you like to process again"
+                                             " and overwrite?",
                                              QMessageBox.Yes |
                                              QMessageBox.No, QMessageBox.No)
 
                 if reply == QMessageBox.Yes:
+
+                    wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit")
+
+                    split_wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SpleeterOutputs_16-bit", "5stems")
+
+                    create_16_bit_wav(song_path, wav_16_output)
+
+                    spleet_wav(song_path,split_wav_16_output ,5)
+
+
+
                     # TODO Make spleeter code run here and output to folder and overright existing file
-                    pass
 
             else:
                 reply = QMessageBox.question(self, '',
@@ -121,11 +118,10 @@ class Example(QMainWindow):
                                              QMessageBox.No, QMessageBox.No)
 
                 if reply == QMessageBox.Yes:
+                    spleet_wav(song_path,
+                               os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit"), 5)
+
                     #TODO Make spleeter code run here and output to folder
-                    pass
-
-
-
 
             self.textbox.setText(song)
 
