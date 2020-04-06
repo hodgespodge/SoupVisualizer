@@ -8,10 +8,13 @@ from PyQt5.QtWidgets import (QWidget, QToolTip,
 from PyQt5.QtGui import QFont
 
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QLabel, QMainWindow
 from PyQt5.QtGui import QIcon
 
-class Example(QWidget):
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+
+class Example(QMainWindow):
 
     song = None
 
@@ -36,44 +39,67 @@ class Example(QWidget):
         self.setGeometry(500, 500, 300, 220)
         self.setWindowTitle('Soup Visualizer')
         self.setWindowIcon(QIcon('soupicon.png'))
-        #
-        # QToolTip.setFont(QFont('SansSerif', 10))
+
+        layout = QVBoxLayout()
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+
+        path = QDir.rootPath()
+
+        print(path)
+
+        self.listview = QListView()
+
+        layout.addWidget(self.listview)
+
+        self.fileModel = QFileSystemModel()
+        self.fileModel.setFilter(QDir.NoDotAndDotDot | QDir.Files)
+
+        self.listview.setModel(self.fileModel)
+        self.listview.setRootIndex(self.fileModel.index(path))
+
+        self.textbox = QLabel("No song selected yet")
+
+        layout.addWidget(self.textbox)
 
         self.btn1 = QPushButton('Play Song', self)
+        layout.addWidget(self.btn1)
+
         self.btn1.setToolTip('TODO')
         self.btn1.resize(self.btn1.sizeHint())
-        self.btn1.move(50, 50)
         self.btn1.clicked.connect(self.on_click_run)
 
         self.btn2 = QPushButton('Select Song', self)
+        layout.addWidget(self.btn2)
         self.btn2.setToolTip('TODO')
         self.btn2.resize(self.btn1.sizeHint())
-        self.btn2.move(100, 100)
         self.btn2.clicked.connect(self.openFileNameDialog)
-
-        self.setGeometry(300, 300, 300, 200)
-        self.setWindowTitle('Tooltips')
 
         self.show()
 
 
     def openFileNameDialog(self):
-        global song
+        global song_path
 
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
                                                   "All Files (*);;Python Files (*.py)", options=options)
         if fileName:
-            song = fileName
+            song_path = fileName
             # print("chose ",song)
+            song = os.path.basename(fileName)
+            self.textbox.setText(song)
+
 
     def on_click_run(self):
 
-        print("passing", song)
-        if song is not None:
+        print("passing", song_path)
+        if song_path is not None:
 
-            run(song)
+            run(song_path)
         else:
             print("TODO make \"please choose song\" dialogue box pop up")
 
