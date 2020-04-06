@@ -1,6 +1,7 @@
 import numpy as np
-
-import os
+import crepe
+import pickle
+import librosa
 
 np.set_printoptions(precision=3,edgeitems=5,suppress=True,linewidth=50)
 
@@ -17,15 +18,41 @@ def get_crepe_confidence(audio,rate=44100,step_size= 50):
     return crepe.predict(audio, rate,step_size=step_size, viterbi=True)
 
 def create_16_bit_wav(songpath,outpath):
-    print("running create 16 bit wav")
     import wavio
     from scipy.io import wavfile
 
     rate, audio = wavfile.read(songpath)
 
-    print("creating 16_bit wav file at",outpath)
-
     wavio.write(outpath, audio.astype(np.int16), rate, sampwidth=2)
+
+def create_new_beat_tempo_profile(song_path, song_name):
+
+    print("Creating new beat and tempo information for " + song_name)
+
+    y, sr = librosa.load(song_path)
+
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
+
+    pickle_output = open("pickles/" + song_name + "_beats.pickle", "wb")
+    pickle.dump((beat_times, tempo), pickle_output)
+    pickle_output.close()
+    return beat_times, tempo
+
+def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name):
+
+    print("Creating new vocal information for " + song_name)
+
+    # Crepe returns vocal fundemental frequency info
+    crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = get_crepe_confidence(
+        vocal_amplitude, rate, step_size=display_interval_ms)
+
+    pickle_output = open("pickles/" + song_name + "_crepe.pickle", "wb")
+    pickle.dump((crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation),
+                pickle_output)
+    pickle_output.close()
+
+    return crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation
 
 def wav_to_mp3(songpath,outpath):
     from pydub import AudioSegment

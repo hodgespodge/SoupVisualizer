@@ -17,8 +17,6 @@ from PyQt5.QtCore import *
 
 class Example(QMainWindow):
 
-    song = None
-
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -85,7 +83,6 @@ class Example(QMainWindow):
                                                   "All Files (*);;Python Files (*.py)", options=options)
         if fileName:
 
-            song_path = fileName
             song = os.path.basename(fileName)
 
             if os.path.isfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)):
@@ -96,20 +93,6 @@ class Example(QMainWindow):
                                              QMessageBox.Yes |
                                              QMessageBox.No, QMessageBox.No)
 
-                if reply == QMessageBox.Yes:
-
-                    wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit")
-
-                    split_wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SpleeterOutputs_16-bit", "5stems")
-
-                    create_16_bit_wav(song_path, wav_16_output)
-
-                    spleet_wav(song_path,split_wav_16_output ,5)
-
-
-
-                    # TODO Make spleeter code run here and output to folder and overright existing file
-
             else:
                 reply = QMessageBox.question(self, '',
                                              "Song file needs to be preprocessed before visualization. This can take a while. "
@@ -117,13 +100,18 @@ class Example(QMainWindow):
                                              QMessageBox.Yes |
                                              QMessageBox.No, QMessageBox.No)
 
-                if reply == QMessageBox.Yes:
-                    spleet_wav(song_path,
-                               os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit"), 5)
+            if reply == QMessageBox.Yes:
+                wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)
 
-                    #TODO Make spleeter code run here and output to folder
+                split_wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                   "SpleeterOutputs_16-bit", "5stems")
 
-            self.textbox.setText(song)
+                spleet_wav(fileName, split_wav_16_output, 5)
+                create_16_bit_wav(fileName, wav_16_output)
+                create_instrument_charactaristics(fileName)
+
+                song_path = fileName
+                self.textbox.setText(song)
 
     def on_click_run(self):
 

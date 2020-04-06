@@ -8,83 +8,79 @@ import scipy.signal
 import pickle
 import librosa
 
+animation_fps = 60
 
-stem_dir = '5stems'
-song = 'Let It Be'
-instrument = 'vocals'
+display_interval_ms = 1000 / animation_fps
+display_interval_s = display_interval_ms / 1000
 
-song_instrument = song + "_" + instrument + "_16-bit.wav"
+def create_instrument_charactaristics(song_path):
 
-vocal_file = os.path.join('SpleeterOutputs_16-bit',
-                          stem_dir,
-                          song + "_vocals_16-bit.wav")
+    print("creating instrument charactaristics")
 
-drums_file = os.path.join('SpleeterOutputs_16-bit',
-                          stem_dir,
-                          song + "_drums_16-bit.wav")
+    stem_dir = '5stems'
+    song_name = os.path.basename(song_path)
 
-song_file = os.path.join('TestSongs','16bit',song+'_16.wav')
+    vocal_file = os.path.join('SpleeterOutputs_16-bit',
+                              stem_dir,
+                              song_name + "_vocals_16-bit.wav")
+
+    rate, vocal_amplitude = read(vocal_file)
+
+    try:
+        print("loading beats pickle")
+        pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
+        pickle.load(pickle_in)
+
+    except:
+        create_new_beat_tempo_profile(song_path, song_name)
+
+    try:
+        print("loading crepe pickle")
+        pickle_in = open("pickles/" + song_name + "_crepe.pickle", "rb")
+        pickle.load(pickle_in)
+
+    except:
+        create_new_vocal_profile(rate, vocal_amplitude, display_interval_ms, song_name)
 
 def run(song_path):
+    stem_dir = '5stems'
+    song_name = os.path.basename(song_path)
 
-    #TODO replace all the nonesense pathing with the new songpath var
-    print("pygame got song:",song_path)
+    vocal_file = os.path.join('SpleeterOutputs_16-bit',
+                              stem_dir,
+                              song_name + "_vocals_16-bit.wav")
 
-    frame_rate = 44100
+    drums_file = os.path.join('SpleeterOutputs_16-bit',
+                              stem_dir,
+                              song_name + "_drums_16-bit.wav")
 
     rate, vocal_amplitude = read(vocal_file)
     rate2, drum_amplitude = read(drums_file)
 
-
     try:
-        pickle_in = open("pickles/"+song+"_beats.pickle","rb")
+        pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
         beat_times, tempo = pickle.load(pickle_in)
 
     except:
 
-        print("Creating new beat and tempo information for " + song)
+        beat_times, tempo = create_new_beat_tempo_profile()
 
-        y,sr = librosa.load(song_file)
-
-        tempo, beat_frames = librosa.beat.beat_track(y = y,sr = sr)
-        beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-
-        pickle_output = open("pickles/" + song + "_beats.pickle", "wb")
-        pickle.dump((beat_times , tempo),pickle_output)
-        pickle_output.close()
-
-
-    print("estimated tempo",tempo)
-
-    print("length of drum_amplitude",len(drum_amplitude))
-
-    print("len amplitude before frame skip",len(vocal_amplitude))
-
-    animation_fps = 60
-
-    display_interval_ms = 1000/animation_fps
-    display_interval_s = display_interval_ms/1000
-
-    print("display_interval in ms: ", display_interval_ms)
+    print("estimated tempo", tempo)
+    print("length of drum_amplitude", len(drum_amplitude))
+    print("len amplitude before frame skip", len(vocal_amplitude))
 
     try:
 
-        pickle_in = open("pickles/"+song+"_crepe.pickle","rb")
+        pickle_in = open("pickles/" + song_name + "_crepe.pickle", "rb")
         crepe_stuff = pickle.load(pickle_in)
         crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
-            crepe_stuff[0],crepe_stuff[1],crepe_stuff[2],crepe_stuff[3]
+            crepe_stuff[0], crepe_stuff[1], crepe_stuff[2], crepe_stuff[3]
 
     except:
 
-        print("Creating new vocal information for "+song)
-
         # Crepe returns vocal fundemental frequency info
-        crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = get_crepe_confidence(vocal_amplitude, rate,step_size=display_interval_ms)
-
-        pickle_output = open("pickles/"+song+"_crepe.pickle","wb")
-        pickle.dump((crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation),pickle_output)
-        pickle_output.close()
-
+        crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
+            create_new_vocal_profile(rate, vocal_amplitude, display_interval_ms, song_name)
 
     # graphic interface dimensions
     width, height = 840, 720
@@ -117,7 +113,7 @@ def run(song_path):
 
     pygame.mixer.pre_init(44100, -16, 2, 1024)
     pygame.mixer.init()
-    pygame.mixer.music.load(song_file)
+    pygame.mixer.music.load(song_path)
     pygame.mixer.music.play()
     now = time.time()
 
