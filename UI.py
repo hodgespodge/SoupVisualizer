@@ -102,6 +102,7 @@ class Example(QMainWindow):
 
             if reply == QMessageBox.Yes:
                 wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)
+                wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)
 
                 split_wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                    "SpleeterOutputs_16-bit", "5stems")
