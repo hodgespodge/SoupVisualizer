@@ -23,3 +23,15 @@ def create_16_bit_wav(songname):
     rate, audio = wavfile.read("TestSongs/"+songname+".wav")
 
     wavio.write("TestSongs/16bit/"+songname+"_16.wav", audio.astype(np.int16), rate, sampwidth=2)
+
+def wav_to_mp3(songpath,outpath):
+    from pydub import AudioSegment
+    AudioSegment.converter = "C:\\ffmpeg\\bin\\ffmpeg.exe"
+    AudioSegment.ffmpeg = "C:\\ffmpeg\\bin\\ffmpeg.exe"
+    AudioSegment.ffprobe = "C:\\ffmpeg\\bin\\ffprobe.exe"
+
+
+    sound = AudioSegment.from_mp3(songpath)
+    sound.export(outpath, format="wav")
+
+# wav_to_mp3("TestSongs/Weird Fishes.mp3","TestSongs/Weird Fishes.wav")

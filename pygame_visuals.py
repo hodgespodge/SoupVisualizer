@@ -25,7 +25,10 @@ drums_file = os.path.join('SpleeterOutputs_16-bit',
 
 song_file = os.path.join('TestSongs','16bit',song+'_16.wav')
 
-def main():
+def run(song_path):
+
+    #TODO replace all the nonesense pathing with the new songpath var
+    print("pygame got song:",song_path)
 
     frame_rate = 44100
 
@@ -57,7 +60,7 @@ def main():
 
     print("len amplitude before frame skip",len(vocal_amplitude))
 
-    animation_fps = 20
+    animation_fps = 60
 
     display_interval_ms = 1000/animation_fps
     display_interval_s = display_interval_ms/1000
@@ -100,10 +103,12 @@ def main():
     #     vocal_amplitude[i] = float(vocal_amplitude[i]) / max_amplitude * height / 4 + height / 2
     # vocal_amplitude = [int(height / 2)] * width + list(vocal_amplitude)
 
-    while(True): #Wait for user to specify run
-        play =  input()
-        if play == "1":
-            break
+
+
+    # while(True): #Wait for user to specify run
+    #     play =  input()
+    #     if play == "1":
+    #         break
 
     pygame.init()
     # screen = pygame.display.set_mode([width, height])
@@ -147,7 +152,7 @@ def main():
 
             note_frequency = crepe_vocal_frequency[index]
 
-            print(note_frequency)
+            # print(note_frequency)
 
             pygame.draw.circle(screen,
                                color,
@@ -165,7 +170,7 @@ def main():
         color = [100, 200, 255]
 
         try:
-            drum_hit = abs((drum_amplitude[int(t * 44100)][0] + drum_amplitude[int(t * 44100)][1])//200)
+            drum_hit = abs((drum_amplitude[int( t * 44100)][0] + drum_amplitude[int( t * 44100)][1])//200)
 
             # print(int(t * 44100))
             if drum_hit > 30:
@@ -182,28 +187,56 @@ def main():
     color = [200,100,255]
 
 
+    fullscreen_display = True
+    music_paused = False
 
     beat_times_index = 0
-    for i,t in enumerate(crepe_vocal_time):
+    crepe_times_index = 0
+
+    # for i, t in enumerate(crepe_vocal_time):
+
+    while(True):
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            #This should update the params so the animations work for any size screen. Doesn't work right now.
+            if event.type == pygame.VIDEORESIZE:
+                width, height = pygame.display.get_surface().get_size()
+
+        keys_pressed = pygame.key.get_pressed()
+        if (keys_pressed[pygame.K_RSHIFT] or keys_pressed[pygame.K_LSHIFT]) and(keys_pressed[pygame.K_TAB]):
+
+            if fullscreen_display:
+                pygame.display.set_mode((0,0),pygame.RESIZABLE)
+                fullscreen_display = False
+
+            else:
+                pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                fullscreen_display = True
+
+        if keys_pressed[pygame.K_SPACE]:
+            print("space bar pressed")
+
+            if music_paused:
+                pygame.mixer.music.unpause()
+                music_paused = False
+            else:
+                pygame.mixer.music.pause()
+                music_paused = True
+
+            time.sleep(0.5)
 
         screen.fill([0, 0, 0])
         pygame.event.get()
 
         player_time = pygame.mixer.music.get_pos()/1000
 
-        if player_time > t:
-            continue
-
-        # try:
-
-        display_vocals(index = i)
-        # display_drums()
-
-
-        #metronome
+        # print(crepe_vocal_time[crepe_times_index],player_time)
 
         if beat_times[beat_times_index] < player_time + 0.05:
-
             pygame.draw.circle(screen,
                                color,
                                (int(2 * width / 3), int(3 * height / 4)),
@@ -211,6 +244,10 @@ def main():
                                0)
             beat_times_index += 1
 
+        while crepe_vocal_time[crepe_times_index] < player_time + 0.05:
+
+            display_vocals(index = crepe_times_index)
+            crepe_times_index += 1
 
 
         time.sleep(display_interval_s)
