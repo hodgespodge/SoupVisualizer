@@ -1,4 +1,5 @@
-from pygame_visuals import *
+# from pygame_visuals import *
+import pygame_visuals
 from SpleeterFunctions import *
 
 from PyQt5.QtGui import QIcon
@@ -14,6 +15,7 @@ from PyQt5.QtGui import QIcon
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from multiprocessing import Process
 
 class Example(QMainWindow):
 
@@ -22,6 +24,7 @@ class Example(QMainWindow):
         self.initUI()
 
     def initUI(self):
+
         self.setGeometry(500, 500, 300, 220)
         self.setWindowTitle('Soup Visualizer')
         self.setWindowIcon(QIcon('soupicon.png'))
@@ -101,25 +104,26 @@ class Example(QMainWindow):
                                              QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
-                wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)
+
                 wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",song)
 
                 split_wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                    "SpleeterOutputs_16-bit", "5stems")
 
                 spleet_wav(fileName, split_wav_16_output, 5)
-                create_16_bit_wav(fileName, wav_16_output)
-                create_instrument_charactaristics(fileName)
+                pygame_visuals.create_16_bit_wav(fileName, wav_16_output)
+                pygame_visuals.create_instrument_charactaristics(fileName)
 
                 song_path = fileName
                 self.textbox.setText(song)
 
     def on_click_run(self):
 
-        print("passing", song_path)
         if song_path is not None:
 
-            run(song_path)
+            P = Process(name="visualizer_window",target=pygame_visuals.run,args=(song_path,))
+            P.start()
+
         else:
             print("TODO make \"please choose song\" dialogue box pop up")
 

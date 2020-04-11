@@ -99,8 +99,6 @@ def run(song_path):
     #     vocal_amplitude[i] = float(vocal_amplitude[i]) / max_amplitude * height / 4 + height / 2
     # vocal_amplitude = [int(height / 2)] * width + list(vocal_amplitude)
 
-
-
     # while(True): #Wait for user to specify run
     #     play =  input()
     #     if play == "1":
@@ -132,7 +130,7 @@ def run(song_path):
     def pitch(freq):
         A4 = 440
         C0 = A4 * pow(2, -4.75)
-        pitch_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+        pitch_names =  ["C" ,"C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
         h = round(12 * log2(freq / C0))
         octave = h // 12
@@ -196,7 +194,7 @@ def run(song_path):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
+                sys.exit()
 
             #This should update the params so the animations work for any size screen. Doesn't work right now.
             if event.type == pygame.VIDEORESIZE:
