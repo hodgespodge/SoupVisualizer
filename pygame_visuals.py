@@ -105,6 +105,8 @@ def run(song_path):
     #         break
 
     pygame.init()
+
+    clock = pygame.time.Clock()
     # screen = pygame.display.set_mode([width, height])
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     width, height = pygame.display.get_surface().get_size()
@@ -252,6 +254,7 @@ def run(song_path):
             display_vocals(index = crepe_times_index)
             crepe_times_index += 1
 
+        clock.tick(60)
 
         # time.sleep(display_interval_s)
 
