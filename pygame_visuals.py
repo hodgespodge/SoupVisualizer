@@ -187,12 +187,18 @@ def run(song_path):
     beat_times_index = 0
     crepe_times_index = 0
 
-    # for i, t in enumerate(crepe_vocal_time):
 
-    while(True):
+    colors = [[255,255,255],[255,0,0],[0,255,0],[0,0,255],[255,255,0],[0,255,255],[255,0,255],
+              [192,192,192],[128,128,128],[128,128,0],[128,0,0],[0,128,0],[128,0,128],[0,128,128],[0,0,128]]
+
+    done = False
+
+    while not done:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print("got pygame.quit")
+                done = True
                 pygame.quit()
                 sys.exit()
 
@@ -216,14 +222,15 @@ def run(song_path):
 
             if music_paused:
                 pygame.mixer.music.unpause()
-                music_paused = False
+                music_paused = not music_paused
             else:
                 pygame.mixer.music.pause()
-                music_paused = True
+                music_paused = not music_paused
 
             time.sleep(0.5)
 
-        screen.fill([0, 0, 0])
+        screen.fill(colors[beat_times_index%len(colors)])
+
         pygame.event.get()
 
         player_time = pygame.mixer.music.get_pos()/1000
@@ -231,6 +238,8 @@ def run(song_path):
         # print(crepe_vocal_time[crepe_times_index],player_time)
 
         if beat_times[beat_times_index] < player_time + 0.05:
+
+
             pygame.draw.circle(screen,
                                color,
                                (int(2 * width / 3), int(3 * height / 4)),
@@ -244,11 +253,6 @@ def run(song_path):
             crepe_times_index += 1
 
 
-        time.sleep(display_interval_s)
+        # time.sleep(display_interval_s)
 
         pygame.display.update()
-        # except:
-        #     pass
-
-if __name__ == '__main__':
-    main()
