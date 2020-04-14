@@ -7,6 +7,7 @@ import crepe
 import scipy.signal
 import pickle
 import librosa
+import math
 
 animation_fps = 60
 
@@ -26,21 +27,9 @@ def create_instrument_charactaristics(song_path):
 
     rate, vocal_amplitude = read(vocal_file)
 
-    try:
-        print("loading beats pickle")
-        pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
-        pickle.load(pickle_in)
+    create_new_beat_tempo_profile(song_path, song_name)
 
-    except:
-        create_new_beat_tempo_profile(song_path, song_name)
-
-    try:
-        print("loading crepe pickle")
-        pickle_in = open("pickles/" + song_name + "_crepe.pickle", "rb")
-        pickle.load(pickle_in)
-
-    except:
-        create_new_vocal_profile(rate, vocal_amplitude, display_interval_ms, song_name)
+    create_new_vocal_profile(rate, vocal_amplitude, math.floor(display_interval_ms), song_name)
 
 def run(song_path):
     stem_dir = '5stems'
@@ -159,7 +148,6 @@ def run(song_path):
             font = pygame.font.SysFont('Calibri',35,True,True)
             text = font.render(pitch(note_frequency),True,(255,255,255))
             screen.blit(text,[100,240])
-
 
     def display_drums():
 

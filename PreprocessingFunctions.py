@@ -12,11 +12,6 @@ def get_fundemental_frequency(wav_file_path):
     print("seconds of song * 44100 = ",len(snd))
     return snd.to_pitch()
 
-def get_crepe_confidence(audio,rate=44100,step_size= 50):
-    import crepe
-
-    return crepe.predict(audio, rate,step_size=step_size, viterbi=True)
-
 def create_16_bit_wav(songpath,outpath):
     import wavio
     from scipy.io import wavfile
@@ -34,20 +29,35 @@ def create_new_beat_tempo_profile(song_path, song_name):
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
+
+    #first empty the file if it exists already
     pickle_output = open("pickles/" + song_name + "_beats.pickle", "wb")
+    pickle_output.close()
+
+
+    pickle_output = open("pickles/" + song_name + "_beats.pickle", "wb")
+
     pickle.dump((beat_times, tempo), pickle_output)
     pickle_output.close()
+
     return beat_times, tempo
 
 def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name):
 
     print("Creating new vocal information for " + song_name)
 
-    # Crepe returns vocal fundemental frequency info
-    crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = get_crepe_confidence(
-        vocal_amplitude, rate, step_size=display_interval_ms)
+    # Crepe returns vocal fundamental frequency info
+    import crepe
+
+    crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
+        crepe.predict(audio=vocal_amplitude,sr=rate,step_size=display_interval_ms,viterbi=True)
+
+    # first empty the file if it exists already
+    pickle_output = open("pickles/" + song_name + "_crepe.pickle", "wb")
+    pickle_output.close()
 
     pickle_output = open("pickles/" + song_name + "_crepe.pickle", "wb")
+
     pickle.dump((crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation),
                 pickle_output)
     pickle_output.close()
@@ -64,4 +74,6 @@ def wav_to_mp3(songpath,outpath):
     sound = AudioSegment.from_mp3(songpath)
     sound.export(outpath, format="wav")
 
-# wav_to_mp3("TestSongs/Weird Fishes.mp3","TestSongs/Weird Fishes.wav")
+def create_new_ellipse_profile():
+    return None
+
