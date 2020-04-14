@@ -18,12 +18,8 @@ def Supershape(a, b ,m ,n1 ,n2 ,n3 ):
     normalised_path = [r/max_r for r in path]
     return normalised_path
 
-def drawShape(radii,  colour=(0,0,0),size=500,angle = 0):
-    surface = pygame.Surface((size+2,size+2))
+def drawShape(radii, size=500,angle = 0):
 
-    # surface.fill((255, 255, 255))
-
-    # surface.set_colorkey((255,255,255))
     size -=2
 
     x=[]
@@ -86,20 +82,24 @@ while(True):
 
     radii = Supershape(a = a, b = b ,m = m ,n1 =n1 ,n2 = n2 ,n3 =n3 )
 
-    shape_points = drawShape(radii,size = 500)
+    shape_points_1 = drawShape(radii,size = 500)
+    shape_points_2 = drawShape(radii, size=400)
+    shape_points_3 = drawShape(radii, size=300)
     # shape.get_rect(center = screen.get_rect(topleft = (0,0)).center)
     # screen.blit(shape,(10,10))
 
-    pygame.draw.aalines(screen,shape_points)
-
+    color = (0, 0, 0)
+    pygame.draw.aalines(screen,color,True,shape_points_1)
+    pygame.draw.aalines(screen, color, True, shape_points_2)
+    pygame.draw.aalines(screen, color, True, shape_points_3)
 
     # inverted = pygame.transform.flip(shape,0,1)
     # new_window = inverted.get_rect(center = screen.get_rect(topleft = (0,0)).center)
     # screen.blit(inverted,new_window.topleft)
-
-    inverted = pygame.transform.flip(shape, 1, 0)
-    new_window = inverted.get_rect(center=screen.get_rect(topleft=(0, 0)).center)
-    screen.blit(inverted, new_window.topleft)
+    #
+    # inverted = pygame.transform.flip(screen, 1, 0)
+    # new_window = inverted.get_rect(center=screen.get_rect(topleft=(0, 0)).center)
+    # screen.blit(inverted, new_window.topleft)
 
     pygame.display.update()
     time.sleep(1)
