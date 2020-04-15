@@ -176,7 +176,7 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
             del vocal_times[i]
         i+= 1
 
-    for vocal_segment in vocal_times:
+    for i,vocal_segment in enumerate( vocal_times):
         # print(vocal_segment)
 
         last_index = vocal_segment[0][1]
@@ -193,6 +193,17 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
 
             last_index = index
 
+        if i < len(vocal_times):
+
+            print("making vocal segment have fade values")
+            print(crepe_vocal_confidence[vocal_segment[-1][1] +1])
+            print(crepe_vocal_confidence[vocal_segment[-1][1]+2 ])
+            print(crepe_vocal_confidence[vocal_segment[-1][1] +3])
+
+            crepe_vocal_confidence[ vocal_segment[-1][1] + 1 ] = -3
+            crepe_vocal_confidence[vocal_segment[-1][1] + 2] = -2
+            crepe_vocal_confidence[vocal_segment[-1][1] + 3] = -1
+
     return crepe_vocal_confidence
 
 def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,song_name,screenL = 1980,screenH=1080):
@@ -206,7 +217,7 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
     for i in range(len(crepe_vocal_time)):
 
         if i % 100 == 0:
-            print((i/len(crepe_vocal_time)) * 100,"% done")
+            print((i/len(crepe_vocal_time)) * 100,"%")
 
         a = 1
         b = 1
@@ -218,11 +229,27 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
         if crepe_vocal_confidence[i] > threshold:
             n1 = 2*crepe_vocal_frequency[i]/1000
 
+        #these statements facilitate a fade effect
+        elif crepe_vocal_confidence[i] == -3 or crepe_vocal_confidence[i] == -2 or crepe_vocal_confidence[i] == -1 :
+            # print("fade")
+
+            a,b,n1,n2,n3,m=last_variables
+
+            # a = a*0.1 + 1
+            # b = b*0.1 + 1
+            n1= n1*0.5 + 1
+            # n2= n2*0.1 + 1
+            # n3= n3*0.1 + 1
+            # m= m*0.1 + 1
+
+
+        last_variables = (a,b,n1,n2,n3,m)
+
         #TODO ADD OTHER INSTRUMENT VALUES HERE
 
         radii = PygameExperimentation.Supershape(a,b,m,n1,n2,n3)
 
-        point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,3,600))
+        point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,2, i ,screenL))
 
     pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
     pickle_output.close()
@@ -231,5 +258,7 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
     pickle.dump(point_times,pickle_output)
     pickle_output.close()
+
+    print("done ")
 
     return point_times

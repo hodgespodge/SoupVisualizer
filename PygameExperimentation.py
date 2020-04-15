@@ -43,12 +43,12 @@ def drawShape(radii,midX ,midY, size=500 ,angle = 0):
     # pygame.draw.aalines(surface,colour,True,points)
     # return surface
 
-def drawShapes(radii, midX, midY, num_shapes, size):
+def drawShapes(radii, midX, midY, num_shapes, size,max_width):
 
     shapes = []
 
     for i in range(num_shapes):
-        shapes.append(drawShape(radii,midX=midX,midY=midY,size=size - i * 100))
+        shapes.append(drawShape(radii,midX=midX,midY=midY,size = ( i * (max_width/num_shapes) + size) % (max_width + 200)))
 
     return shapes
 
