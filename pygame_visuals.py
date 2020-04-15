@@ -74,13 +74,6 @@ def run(song_path):
         crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
             create_new_vocal_profile(rate, vocal_amplitude, display_interval_ms, song_name)
 
-    try:
-        pickle_in = open("pickles/" + song_name + "_ellipses.pickle", "rb")
-        ellipses = pickle.load(pickle_in)
-
-    except:
-        ellipses = create_new_ellipse_profile(threshold=0.75, crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_frequency=
-        crepe_vocal_frequency, crepe_vocal_time=crepe_vocal_time,song_name=song_name, screenL=screenL, screenH=screenH)
 
     try:
         pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
@@ -96,6 +89,15 @@ def run(song_path):
     except:
         pitches,magnitudes = create_new_other_profile(song_path, song_name)
 
+    try:
+        pickle_in = open("pickles/" + song_name + "_ellipses.pickle", "rb")
+        ellipses = pickle.load(pickle_in)
+
+    except:
+        ellipses = create_new_ellipse_profile(threshold=0.75, crepe_vocal_confidence=crepe_vocal_confidence,
+                                              crepe_vocal_frequency=
+                                              crepe_vocal_frequency, crepe_vocal_time=crepe_vocal_time,
+                                              song_name=song_name, screenL=screenL, screenH=screenH)
 
     print("estimated tempo", tempo)
     print("length of drum_amplitude", len(drum_amplitude))
