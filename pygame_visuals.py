@@ -29,11 +29,22 @@ def create_instrument_charactaristics(song_path):
 
     create_new_beat_tempo_profile(song_path, song_name)
 
-    create_new_vocal_profile(rate, vocal_amplitude, math.floor(display_interval_ms), song_name)
+    crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
+        create_new_vocal_profile(rate, vocal_amplitude, math.floor(display_interval_ms), song_name)
+
+    #TODO make these variables instead of being hardcoded
+    screenL = 1920
+    screenH = 1080
+
+    create_new_ellipse_profile(threshold=0.75,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_frequency=
+    crepe_vocal_frequency,crepe_vocal_time=crepe_vocal_time,song_name= song_name,screenL=screenL,screenH=screenH)
 
 def run(song_path):
     stem_dir = '5stems'
     song_name = os.path.basename(song_path)
+
+    screenL = 1920
+    screenH = 1080
 
     vocal_file = os.path.join('SpleeterOutputs_16-bit',
                               stem_dir,
@@ -46,12 +57,12 @@ def run(song_path):
     rate, vocal_amplitude = read(vocal_file)
     rate2, drum_amplitude = read(drums_file)
 
+
     try:
         pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
         beat_times, tempo = pickle.load(pickle_in)
 
     except:
-
         beat_times, tempo = create_new_beat_tempo_profile()
 
     print("estimated tempo", tempo)
@@ -71,27 +82,13 @@ def run(song_path):
         crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
             create_new_vocal_profile(rate, vocal_amplitude, display_interval_ms, song_name)
 
-    # graphic interface dimensions
-    width, height = 840, 720
-    center = [width // 2, height // 2]
+    try:
+        pickle_in = open("pickles/" + song_name + "_ellipses.pickle", "rb")
+        ellipses = pickle.load(pickle_in)
 
-    frame_skip = 96
-    vocal_amplitude = vocal_amplitude[:, 0] + vocal_amplitude[:, 1]
-    vocal_amplitude = vocal_amplitude[::frame_skip]
-    frequency = list(abs(fft.fft(vocal_amplitude)))
-
-    # print("fundemental freq list",len(get_fundemental_frequency(file_name).selected_array['frequency']))
-
-    # scale the amplitude to 1/4th of the frame height and translate it to height/2(central line)
-    # max_amplitude = max(vocal_amplitude)
-    # for i in range(len(vocal_amplitude)):
-    #     vocal_amplitude[i] = float(vocal_amplitude[i]) / max_amplitude * height / 4 + height / 2
-    # vocal_amplitude = [int(height / 2)] * width + list(vocal_amplitude)
-
-    # while(True): #Wait for user to specify run
-    #     play =  input()
-    #     if play == "1":
-    #         break
+    except:
+        ellipses = create_new_ellipse_profile(threshold=0.75, crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_frequency=
+        crepe_vocal_frequency, crepe_vocal_time=crepe_vocal_time,song_name=song_name, screenL=screenL, screenH=screenH)
 
     pygame.init()
 
@@ -112,7 +109,7 @@ def run(song_path):
 
     crepe_vocal_confidence = remove_confidence_outliers(crepe_vocal_confidence)
 
-    max_frequency = max(crepe_vocal_frequency)
+    # max_frequency = max(crepe_vocal_frequency)
 
     from math import log2, pow
     ##https: // www.johndcook.com / blog / 2016 / 02 / 10 / musical - pitch - notation /
@@ -225,27 +222,27 @@ def run(song_path):
 
         player_time = pygame.mixer.music.get_pos()/1000
 
-        # print(crepe_vocal_time[crepe_times_index],player_time)
-
         if beat_times[beat_times_index] < player_time + 0.05:
 
 
-            pygame.draw.circle(screen,
-                               color,
-                               (int(2 * width / 3), int(3 * height / 4)),
-                               50,
-                               0)
+            # pygame.draw.circle(screen,
+            #                    color,
+            #                    (int(2 * width / 3), int(3 * height / 4)),
+            #                    50,
+            #                    0)
             beat_times_index += 1
 
-        # if crepe_vocal_time[crepe_times_index] < player_time:
+
+        # while crepe_vocal_time[crepe_times_index] < player_time :
         #
         #     display_vocals(index = crepe_times_index)
-        #
         #     crepe_times_index += 1
+
 
         while crepe_vocal_time[crepe_times_index] < player_time :
 
-            display_vocals(index = crepe_times_index)
+            for shape in ellipses[crepe_times_index]:
+                pygame.draw.lines(screen, color, True, shape,5)
             crepe_times_index += 1
 
         clock.tick(60)

@@ -82,9 +82,6 @@ def wav_to_mp3(songpath,outpath):
     sound = AudioSegment.from_mp3(songpath)
     sound.export(outpath, format="wav")
 
-def create_new_ellipse_profile():
-    return None
-
 def slope(X, Y):
 
     Y = list(Y)
@@ -198,7 +195,9 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
 
     return crepe_vocal_confidence
 
-def create_all_ellipse_points(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,screenL,screenH):
+def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,song_name,screenL = 1980,screenH=1080):
+
+    print("Creating Ellipse profile")
 
     import PygameExperimentation
 
@@ -230,109 +229,7 @@ def create_all_ellipse_points(threshold,crepe_vocal_confidence,crepe_vocal_frequ
 
     pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
 
-    pickle.dump(point_times)
+    pickle.dump(point_times,pickle_output)
     pickle_output.close()
 
     return point_times
-
-import os
-from scipy.io.wavfile import read
-song_name = "Creep .wav"
-stem_dir = '5stems'
-
-animation_fps = 60
-
-display_interval_ms = 1000 / animation_fps
-
-vocal_file = os.path.join('SpleeterOutputs_16-bit',
-                              stem_dir,
-                              song_name + "_vocals_16-bit.wav")
-
-drums_file = os.path.join('SpleeterOutputs_16-bit',
-                          stem_dir,
-                          song_name + "_drums_16-bit.wav")
-
-rate, vocal_amplitude = read(vocal_file)
-rate2, drum_amplitude = read(drums_file)
-
-try:
-    pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
-    beat_times, tempo = pickle.load(pickle_in)
-
-except:
-
-    beat_times, tempo = create_new_beat_tempo_profile()
-
-print("estimated tempo", tempo)
-print("length of drum_amplitude", len(drum_amplitude))
-print("len amplitude before frame skip", len(vocal_amplitude))
-
-try:
-
-    pickle_in = open("pickles/" + song_name + "_crepe.pickle", "rb")
-    crepe_stuff = pickle.load(pickle_in)
-    crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
-        crepe_stuff[0], crepe_stuff[1], crepe_stuff[2], crepe_stuff[3]
-
-except:
-
-    # Crepe returns vocal fundemental frequency info
-    crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
-        create_new_vocal_profile(rate, vocal_amplitude, display_interval_ms, song_name)
-
-crepe_vocal_confidence =  adjust_vocal_onset_confidence(window_size=20,threshold=0.75,crepe_vocal_frequency=crepe_vocal_frequency,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_time=crepe_vocal_time)
-
-crepe_vocal_confidence = group_vocals(window_size=20,threshold=0.75,crepe_vocal_frequency=crepe_vocal_frequency,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_time=crepe_vocal_time)
-
-
-import pygame
-
-width = 1200
-height = 900
-
-print("creating ellipsis")
-
-ellipsis = create_all_ellipse_points(0.75,crepe_vocal_confidence =crepe_vocal_confidence,crepe_vocal_frequency =crepe_vocal_frequency,
-                          crepe_vocal_time =crepe_vocal_time,screenL=width,screenH= height)
-
-print("done creating ellipsis")
-pygame.init()
-clock = pygame.time.Clock()
-screen = pygame.display.set_mode((width, height))
-
-
-color = (0, 0, 0)
-
-index = 0
-
-while(True):
-    pygame.event.get()
-
-    screen.fill(((255 + index) % 255,100,index% 255))
-
-    for shape in ellipsis[index]:
-
-        pygame.draw.aalines(screen, color, True, shape)
-        pygame.display.update()
-
-    index += 1
-    pygame.display.update()
-    clock.tick(30)
-
-# while(True):
-#
-#     print(pygame.time.get_ticks())
-#
-#     screen.fill((255, 255, 255))
-#
-#     time = pygame.time.get_ticks()
-#
-#     for shape in ellipsis[index]:
-#         print("drawing shape")
-#         pygame.draw.lines(screen,color,True,shape)
-#
-#     index += 1
-#
-#     pygame.display.update()
-#     pygame.time.delay(1000)
-#     # clock.tick(0.5)
