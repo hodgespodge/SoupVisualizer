@@ -9,7 +9,7 @@ import pickle
 import librosa
 import math
 
-animation_fps = 60
+animation_fps = 30
 
 display_interval_ms = 1000 / animation_fps
 display_interval_s = display_interval_ms / 1000
@@ -25,23 +25,36 @@ def create_instrument_charactaristics(song_path):
                               stem_dir,
                               song_name + "_vocals_16-bit.wav")
 
-    rate, vocal_amplitude = read(vocal_file)
+    other_file = os.path.join('SpleeterOutputs_16-bit',
+                              stem_dir,
+                              song_name + "_other_16-bit.wav")
 
+    rate_vocal, vocal_amplitude = read(vocal_file)
+    rate_other, other_amplitude = read(other_file)
+
+
+    num_samples = len(vocal_amplitude)
+
+    animation_frames = []
+
+    for i in range(math.floor((num_samples*animation_fps)/44100)):
+        animation_frames.append(int(i * 44100/ animation_fps))
+
+    print("these are the frames to animate on:",animation_frames)
 
 
     crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
-        create_new_vocal_profile(rate, vocal_amplitude, math.floor(display_interval_ms), song_name)
+        create_new_vocal_profile(rate_vocal, vocal_amplitude, math.floor(display_interval_ms), song_name)
 
     #TODO make these variables instead of being hardcoded
     screenL = 1920
     screenH = 1080
 
     create_new_ellipse_profile(threshold=0.75,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_frequency=
-    crepe_vocal_frequency,crepe_vocal_time=crepe_vocal_time,song_name= song_name,screenL=screenL,screenH=screenH)
+    crepe_vocal_frequency,crepe_vocal_time=crepe_vocal_time,song_name= song_name,screenL=screenL,screenH=screenH,animation_frames=animation_frames)
 
     create_new_beat_tempo_profile(song_path, song_name)
-
-    create_new_other_profile(song_path,song_name)
+    create_new_other_profile(other_amplitude,rate_other,song_path,song_name)
 
 def run(song_path):
     stem_dir = '5stems'
@@ -58,8 +71,23 @@ def run(song_path):
                               stem_dir,
                               song_name + "_drums_16-bit.wav")
 
+    other_file = os.path.join('SpleeterOutputs_16-bit',
+                              stem_dir,
+                              song_name + "_other_16-bit.wav")
+
     rate, vocal_amplitude = read(vocal_file)
-    rate2, drum_amplitude = read(drums_file)
+    rate_drums, drum_amplitude = read(drums_file)
+    rate_other, other_amplitude = read(other_file)
+
+    num_samples = len(vocal_amplitude)
+
+    animation_frames = []
+
+    for i in range(math.floor((num_samples * animation_fps) / 44100)):
+        animation_frames.append(int(i * 44100 / animation_fps))
+
+    print("these are the frames to animate on:")
+    print(animation_frames)
 
     try:
 
@@ -87,21 +115,41 @@ def run(song_path):
         pitches,magnitudes = pickle.load(pickle_in)
 
     except:
-        pitches,magnitudes = create_new_other_profile(song_path, song_name)
+        pitches,magnitudes = create_new_other_profile(other_amplitude,rate_other,song_path, song_name,display_interval_ms)
 
     try:
+        print("opening ellipses pickle")
         pickle_in = open("pickles/" + song_name + "_ellipses.pickle", "rb")
         ellipses = pickle.load(pickle_in)
 
     except:
+        print("couldnt open ellipses pickle")
         ellipses = create_new_ellipse_profile(threshold=0.75, crepe_vocal_confidence=crepe_vocal_confidence,
                                               crepe_vocal_frequency=
                                               crepe_vocal_frequency, crepe_vocal_time=crepe_vocal_time,
-                                              song_name=song_name, screenL=screenL, screenH=screenH)
+                                              song_name=song_name, vocal_amplitude = vocal_amplitude,
+                                              other_amplitude=other_amplitude, screenL=screenL, screenH=screenH,animation_frames=animation_frames)
+
+    def detect_pitch(y, sr, t):
+        index = magnitudes[:, t].argmax()
+        pitch = pitches[index, t]
+
+        return pitch
+
+    other_pitches = []
+
+    for i in range(len(pitches)):
+        # print(detect_pitch(pitches,44100,i))
+        other_pitches.append(detect_pitch(pitches,44100,i))
 
     print("estimated tempo", tempo)
     print("length of drum_amplitude", len(drum_amplitude))
     print("len amplitude before frame skip", len(vocal_amplitude))
+
+    print("len other pitches",len(other_pitches))
+
+    print("len crepe",len(crepe_vocal_confidence))
+
     pygame.init()
 
     clock = pygame.time.Clock()
@@ -185,6 +233,7 @@ def run(song_path):
 
     beat_times_index = 0
     crepe_times_index = 0
+    animation_frame_index = 0
 
 
     # colors = [[255,255,255],[255,0,0],[0,255,0],[0,0,255],[255,255,0],[0,255,255],[255,0,255],
@@ -195,6 +244,8 @@ def run(song_path):
 
     done = False
 
+    for i in range(len(animation_frames)):
+        animation_frames[i] = animation_frames[i] / 44100
 
     while not done:
 
@@ -260,12 +311,22 @@ def run(song_path):
 
         # while crepe_vocal_time[crepe_times_index] < player_time + 0.1:
 
-        for shape in ellipses[crepe_times_index]:
-            pygame.draw.lines(screen, color, True, shape,5)
+        # print(player_time * 44100)
+
+        # print(player_time * 44100,animation_frames[animation_frame_index])
+
+        while animation_frames[animation_frame_index] < player_time:
+
+            for shape in ellipses[animation_frame_index]:
+                pygame.draw.lines(screen, color, True, shape,5)
+
+            animation_frame_index +=1
+
+        # if player_time > [animation_frame_index]
 
         crepe_times_index += 1
 
-        clock.tick(60)
+        clock.tick(animation_fps - 1)
 
         # time.sleep(display_interval_s)
 

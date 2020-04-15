@@ -9,7 +9,10 @@ def get_fundemental_frequency(wav_file_path):
     import parselmouth
     snd = parselmouth.Sound(wav_file_path)
 
+
     print("seconds of song * 44100 = ",len(snd))
+
+
     return snd.to_pitch()
 
 def create_16_bit_wav(songpath,outpath):
@@ -45,10 +48,14 @@ def create_new_beat_tempo_profile(song_path, song_name):
 
     return beat_times, tempo
 
-def create_new_other_profile(song_path,song_name):
+def create_new_other_profile(y,sr,song_path,song_name,display_interval_ms):
     import librosa
 
+    import math
+
+    print("Creating new other profile")
     y, sr = librosa.load(song_path)
+
     pitches, magnitudes = librosa.core.piptrack(y=y, sr=sr)
 
     create_pickle(song_name + "_other.pickle", (pitches, magnitudes))
@@ -223,18 +230,28 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
 
     return crepe_vocal_confidence
 
-def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,song_name,screenL = 1980,screenH=1080):
+def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,song_name,vocal_amplitude,other_amplitude,screenL = 1980,screenH=1080,animation_frames = []):
 
     print("Creating Ellipse profile")
 
+    import math
     import PygameExperimentation
 
     point_times = []
 
-    for i in range(len(crepe_vocal_time)):
+    # for i in range(len(crepe_vocal_time)):
 
-        if i % 100 == 0:
-            print((i/len(crepe_vocal_time)) * 100,"%")
+    print("animation frames")
+    print(animation_frames)
+
+    print("animating ",len(animation_frames),"frames")
+
+    for i in animation_frames:
+
+        # print(i)
+
+        # if i % 100 == 0:
+        #     print((i/len(vocal_amplitude)) * 100,"%")
 
         a = 1
         b = 1
@@ -243,11 +260,31 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
         n3 = 1
         m = 4
 
-        if crepe_vocal_confidence[i] > threshold:
+        # print(i)
 
-            # print(crepe_vocal_time[i]," ",crepe_vocal_confidence[i]," ")
+        i = math.floor(i)
+        # abs((drum_amplitude[int(t * 44100)][0] + drum_amplitude[int(t * 44100)][1]) // 200)
 
-            n1 = 2*crepe_vocal_frequency[i]/1000
+        # print("left side",vocal_amplitude[i][0])
+        # print("right side",vocal_amplitude[i][1])
+        #
+        # print(abs(vocal_amplitude[i][0] + vocal_amplitude[i][1]))
+
+        # if abs(vocal_amplitude[i][0] + vocal_amplitude[i][1])> 1000:
+
+
+
+        n1 =(( abs(vocal_amplitude[i][0] + vocal_amplitude[i][1]) )/ 1000000) + 1
+        print(n1)
+
+        # if other_amplitude[i] > 200:
+        #     a = 2 * other_amplitude[i]/1000
+
+        # if crepe_vocal_confidence[i] > threshold:
+        #
+        #     # print(crepe_vocal_time[i]," ",crepe_vocal_confidence[i]," ")
+        #
+        #     n1 = 2*crepe_vocal_frequency[i]/1000
 
         #these statements facilitate a fade effect
         # elif crepe_vocal_confidence[i] == -3 or crepe_vocal_confidence[i] == -2 or crepe_vocal_confidence[i] == -1 :
