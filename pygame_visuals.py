@@ -27,7 +27,7 @@ def create_instrument_charactaristics(song_path):
 
     rate, vocal_amplitude = read(vocal_file)
 
-    create_new_beat_tempo_profile(song_path, song_name)
+
 
     crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
         create_new_vocal_profile(rate, vocal_amplitude, math.floor(display_interval_ms), song_name)
@@ -38,6 +38,10 @@ def create_instrument_charactaristics(song_path):
 
     create_new_ellipse_profile(threshold=0.75,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_frequency=
     crepe_vocal_frequency,crepe_vocal_time=crepe_vocal_time,song_name= song_name,screenL=screenL,screenH=screenH)
+
+    create_new_beat_tempo_profile(song_path, song_name)
+
+    create_new_other_profile(song_path,song_name)
 
 def run(song_path):
     stem_dir = '5stems'
@@ -56,18 +60,6 @@ def run(song_path):
 
     rate, vocal_amplitude = read(vocal_file)
     rate2, drum_amplitude = read(drums_file)
-
-
-    try:
-        pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
-        beat_times, tempo = pickle.load(pickle_in)
-
-    except:
-        beat_times, tempo = create_new_beat_tempo_profile()
-
-    print("estimated tempo", tempo)
-    print("length of drum_amplitude", len(drum_amplitude))
-    print("len amplitude before frame skip", len(vocal_amplitude))
 
     try:
 
@@ -90,6 +82,24 @@ def run(song_path):
         ellipses = create_new_ellipse_profile(threshold=0.75, crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_frequency=
         crepe_vocal_frequency, crepe_vocal_time=crepe_vocal_time,song_name=song_name, screenL=screenL, screenH=screenH)
 
+    try:
+        pickle_in = open("pickles/" + song_name + "_beats.pickle", "rb")
+        beat_times, tempo = pickle.load(pickle_in)
+
+    except:
+        beat_times, tempo = create_new_beat_tempo_profile(song_path, song_name)
+
+    try:
+        pickle_in = open("pickles/" + song_name + "_other.pickle", "rb")
+        pitches,magnitudes = pickle.load(pickle_in)
+
+    except:
+        pitches,magnitudes = create_new_other_profile(song_path, song_name)
+
+
+    print("estimated tempo", tempo)
+    print("length of drum_amplitude", len(drum_amplitude))
+    print("len amplitude before frame skip", len(vocal_amplitude))
     pygame.init()
 
     clock = pygame.time.Clock()

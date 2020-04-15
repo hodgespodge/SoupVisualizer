@@ -65,34 +65,34 @@ def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name)
     crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
         crepe.predict(audio=vocal_amplitude,sr=rate,step_size=display_interval_ms,viterbi=True)
 
-    print("Before confidence onset editing")
-    for i in range(len(crepe_vocal_confidence)):
-        if crepe_vocal_confidence[i] > 0.75:
-            print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
-        else:
-            print(crepe_vocal_time[i], crepe_vocal_confidence[i])
-
-    crepe_vocal_confidence= adjust_vocal_onset_confidence(window_size=10, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
-                                  crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_time=crepe_vocal_time)
-
-    print("after confidence onset editing")
-    for i in range(len(crepe_vocal_confidence)):
-        if crepe_vocal_confidence[i] > 0.75:
-            print(crepe_vocal_time[i], crepe_vocal_confidence[i],"<------")
-        else:
-            print(crepe_vocal_time[i], crepe_vocal_confidence[i])
-
-
-    crepe_vocal_confidence = group_vocals(window_size=20, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
-                                          crepe_vocal_confidence=crepe_vocal_confidence,
-                                          crepe_vocal_time=crepe_vocal_time)
-
-    print("after grouping")
-    for i in range(len(crepe_vocal_confidence)):
-        if crepe_vocal_confidence[i] > 0.75:
-            print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
-        else:
-            print(crepe_vocal_time[i], crepe_vocal_confidence[i])
+    # print("Before confidence onset editing")
+    # for i in range(len(crepe_vocal_confidence)):
+    #     if crepe_vocal_confidence[i] > 0.75:
+    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
+    #     else:
+    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i])
+    #
+    # crepe_vocal_confidence= adjust_vocal_onset_confidence(window_size=10, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
+    #                               crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_time=crepe_vocal_time)
+    #
+    # print("after confidence onset editing")
+    # for i in range(len(crepe_vocal_confidence)):
+    #     if crepe_vocal_confidence[i] > 0.75:
+    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i],"<------")
+    #     else:
+    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i])
+    #
+    #
+    # crepe_vocal_confidence = group_vocals(window_size=20, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
+    #                                       crepe_vocal_confidence=crepe_vocal_confidence,
+    #                                       crepe_vocal_time=crepe_vocal_time)
+    #
+    # print("after grouping")
+    # for i in range(len(crepe_vocal_confidence)):
+    #     if crepe_vocal_confidence[i] > 0.75:
+    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
+    #     else:
+    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i])
 
     create_pickle(song_name + "_vocal.pickle", (crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence,
                                                 crepe_vocal_activation))
@@ -245,22 +245,22 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
         if crepe_vocal_confidence[i] > threshold:
 
-            print(crepe_vocal_time[i]," ",crepe_vocal_confidence[i]," ")
+            # print(crepe_vocal_time[i]," ",crepe_vocal_confidence[i]," ")
 
             n1 = 2*crepe_vocal_frequency[i]/1000
 
         #these statements facilitate a fade effect
-        elif crepe_vocal_confidence[i] == -3 or crepe_vocal_confidence[i] == -2 or crepe_vocal_confidence[i] == -1 :
-            # print("fade")
-
-            a,b,n1,n2,n3,m=last_variables
-
-            # a = a*0.1 + 1
-            # b = b*0.1 + 1
-            n1= n1*0.5 + 1
-            # n2= n2*0.1 + 1
-            # n3= n3*0.1 + 1
-            # m= m*0.1 + 1
+        # elif crepe_vocal_confidence[i] == -3 or crepe_vocal_confidence[i] == -2 or crepe_vocal_confidence[i] == -1 :
+        #     # print("fade")
+        #
+        #     a,b,n1,n2,n3,m=last_variables
+        #
+        #     # a = a*0.1 + 1
+        #     # b = b*0.1 + 1
+        #     n1= n1*0.5 + 1
+        #     # n2= n2*0.1 + 1
+        #     # n3= n3*0.1 + 1
+        #     # m= m*0.1 + 1
 
 
         last_variables = (a,b,n1,n2,n3,m)
@@ -273,14 +273,6 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
     create_pickle(song_name + "_ellipses.pickle", (point_times))
 
-    # pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
-    # pickle_output.close()
-    #
-    # pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
-    #
-    # pickle.dump(point_times,pickle_output)
-    # pickle_output.close()
-    #
     print("done ")
 
     return point_times
