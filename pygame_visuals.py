@@ -237,7 +237,13 @@ def run(song_path):
                                0)
             beat_times_index += 1
 
-        while crepe_vocal_time[crepe_times_index] < player_time + 0.05:
+        # if crepe_vocal_time[crepe_times_index] < player_time:
+        #
+        #     display_vocals(index = crepe_times_index)
+        #
+        #     crepe_times_index += 1
+
+        while crepe_vocal_time[crepe_times_index] < player_time :
 
             display_vocals(index = crepe_times_index)
             crepe_times_index += 1
@@ -247,3 +253,4 @@ def run(song_path):
         # time.sleep(display_interval_s)
 
         pygame.display.update()
+

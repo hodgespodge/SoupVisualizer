@@ -52,8 +52,12 @@ def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name)
     crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
         crepe.predict(audio=vocal_amplitude,sr=rate,step_size=display_interval_ms,viterbi=True)
 
-    crepe_vocal_confidence= adjust_vocal_onset_confidence(window_size=20, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
+    crepe_vocal_confidence= adjust_vocal_onset_confidence(window_size=10, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
                                   crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_time=crepe_vocal_time)
+
+    crepe_vocal_confidence = group_vocals(window_size=20, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
+                                          crepe_vocal_confidence=crepe_vocal_confidence,
+                                          crepe_vocal_time=crepe_vocal_time)
 
     # first empty the file if it exists already
     pickle_output = open("pickles/" + song_name + "_crepe.pickle", "wb")
@@ -135,8 +139,7 @@ def adjust_vocal_onset_confidence(window_size, threshold,crepe_vocal_frequency,c
 
 def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confidence,crepe_vocal_time):
 
-
-    time_between_distinct_clusters = 1
+    time_between_distinct_clusters = 0.75
     vocal_times = []
     last_vocal_time = -1000
     vocal_bin = []
@@ -150,41 +153,87 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
                 vocal_times.append(vocal_bin)
                 vocal_bin = []
 
-            vocal_bin.append(crepe_vocal_time[i])
+            vocal_bin.append((crepe_vocal_time[i],i))
+            # vocal_bin[i] = crepe_vocal_time[i]
             last_vocal_time = crepe_vocal_time[i]
 
     vocal_times.pop(0)
 
-    #TEST
-    vocal_times.append([84.5,85.4])
-
-    for item in vocal_times:
-        print(item[0], item[-1])
-
-    for i in range(len(vocal_times)):
+    i = 0
+    while i < len(vocal_times):
 
         #if the vocal segment is too short, try and append it to another vocal segment.
-        if(vocal_times[i][-1] - vocal_times[i][0]) < min_vocal_segment_length:
+        if(vocal_times[i][-1][0] - vocal_times[i][0][0] ) < min_vocal_segment_length:
 
-            distance_to_lower = vocal_times[i][0] - vocal_times[i -1][-1]
-            distance_to_upper = vocal_times[i + 1][0] -  vocal_times[i][-1]
+            distance_to_lower = vocal_times[i][0][0]  - vocal_times[i -1][-1][0]
+            distance_to_upper = vocal_times[i + 1][0][0]  -  vocal_times[i][-1][0]
 
-            print(distance_to_lower,distance_to_upper)
+            if distance_to_upper < time_between_distinct_clusters * 2 or distance_to_lower < time_between_distinct_clusters * 2:
 
-            if distance_to_lower > distance_to_upper:
-                pass
+                if distance_to_lower < distance_to_upper :
 
-            print(vocal_times[0],vocal_times[-1])
+                    vocal_times[i-1 ] = vocal_times[i-1] + vocal_times[i]
+                else:
+                    vocal_times[i + 1] = vocal_times[i] + vocal_times[i + 1]
 
+            del vocal_times[i]
+        i+= 1
 
+    for vocal_segment in vocal_times:
+        # print(vocal_segment)
 
+        last_index = vocal_segment[0][1]
+        # print("last_index",last_index)
 
+        for time_and_index in vocal_segment:
+            index = time_and_index[1]
 
+            if index > last_index + 1:
+                for j in range(last_index,index):
 
+                    # print("Promoting crepe_vocal_confidence at index ",j)
+                    crepe_vocal_confidence[j] = 0.76
 
-        # print(item[0],item[-1])
+            last_index = index
 
-        # print(item)
+    return crepe_vocal_confidence
+
+def create_all_ellipse_points(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,screenL,screenH):
+
+    import PygameExperimentation
+
+    point_times = []
+
+    for i in range(len(crepe_vocal_time)):
+
+        if i % 100 == 0:
+            print((i/len(crepe_vocal_time)) * 100,"% done")
+
+        a = 1
+        b = 1
+        n1 = 1
+        n2 = 1
+        n3 = 1
+        m = 4
+
+        if crepe_vocal_confidence[i] > threshold:
+            n1 = 2*crepe_vocal_frequency[i]/1000
+
+        #TODO ADD OTHER INSTRUMENT VALUES HERE
+
+        radii = PygameExperimentation.Supershape(a,b,m,n1,n2,n3)
+
+        point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,3,600))
+
+    pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
+    pickle_output.close()
+
+    pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
+
+    pickle.dump(point_times)
+    pickle_output.close()
+
+    return point_times
 
 import os
 from scipy.io.wavfile import read
@@ -233,5 +282,57 @@ except:
 
 crepe_vocal_confidence =  adjust_vocal_onset_confidence(window_size=20,threshold=0.75,crepe_vocal_frequency=crepe_vocal_frequency,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_time=crepe_vocal_time)
 
-group_vocals(window_size=20,threshold=0.75,crepe_vocal_frequency=crepe_vocal_frequency,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_time=crepe_vocal_time)
+crepe_vocal_confidence = group_vocals(window_size=20,threshold=0.75,crepe_vocal_frequency=crepe_vocal_frequency,crepe_vocal_confidence=crepe_vocal_confidence,crepe_vocal_time=crepe_vocal_time)
 
+
+import pygame
+
+width = 1200
+height = 900
+
+print("creating ellipsis")
+
+ellipsis = create_all_ellipse_points(0.75,crepe_vocal_confidence =crepe_vocal_confidence,crepe_vocal_frequency =crepe_vocal_frequency,
+                          crepe_vocal_time =crepe_vocal_time,screenL=width,screenH= height)
+
+print("done creating ellipsis")
+pygame.init()
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode((width, height))
+
+
+color = (0, 0, 0)
+
+index = 0
+
+while(True):
+    pygame.event.get()
+
+    screen.fill(((255 + index) % 255,100,index% 255))
+
+    for shape in ellipsis[index]:
+
+        pygame.draw.aalines(screen, color, True, shape)
+        pygame.display.update()
+
+    index += 1
+    pygame.display.update()
+    clock.tick(30)
+
+# while(True):
+#
+#     print(pygame.time.get_ticks())
+#
+#     screen.fill((255, 255, 255))
+#
+#     time = pygame.time.get_ticks()
+#
+#     for shape in ellipsis[index]:
+#         print("drawing shape")
+#         pygame.draw.lines(screen,color,True,shape)
+#
+#     index += 1
+#
+#     pygame.display.update()
+#     pygame.time.delay(1000)
+#     # clock.tick(0.5)
