@@ -71,7 +71,7 @@ def run(song_path):
 
     try:
 
-        pickle_in = open("pickles/" + song_name + "_crepe.pickle", "rb")
+        pickle_in = open("pickles/" + song_name + "_vocal.pickle", "rb")
         crepe_stuff = pickle.load(pickle_in)
         crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
             crepe_stuff[0], crepe_stuff[1], crepe_stuff[2], crepe_stuff[3]
@@ -183,6 +183,7 @@ def run(song_path):
 
     done = False
 
+
     while not done:
 
         for event in pygame.event.get():
@@ -242,12 +243,15 @@ def run(song_path):
         #     crepe_times_index += 1
 
 
-        while crepe_vocal_time[crepe_times_index] < player_time :
+        # print(crepe_vocal_time[crepe_times_index],player_time)
 
-            for shape in ellipses[crepe_times_index]:
-                pygame.draw.lines(screen, color, True, shape,5)
 
-            crepe_times_index += 1
+        # while crepe_vocal_time[crepe_times_index] < player_time + 0.1:
+
+        for shape in ellipses[crepe_times_index]:
+            pygame.draw.lines(screen, color, True, shape,5)
+
+        crepe_times_index += 1
 
         clock.tick(60)
 

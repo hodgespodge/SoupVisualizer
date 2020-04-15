@@ -20,6 +20,18 @@ def create_16_bit_wav(songpath,outpath):
 
     wavio.write(outpath, audio.astype(np.int16), rate, sampwidth=2)
 
+def create_pickle(file_name,data):
+
+    #empty file if already exists
+    pickle_output = open("pickles/" + file_name, "wb")
+    pickle_output.close()
+
+    #dump data in file
+    pickle_output = open("pickles/" + file_name, "wb")
+    pickle.dump(data, pickle_output)
+    pickle_output.close()
+
+
 def create_new_beat_tempo_profile(song_path, song_name):
 
     print("Creating new beat and tempo information for " + song_name)
@@ -29,18 +41,19 @@ def create_new_beat_tempo_profile(song_path, song_name):
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
-
-    #first empty the file if it exists already
-    pickle_output = open("pickles/" + song_name + "_beats.pickle", "wb")
-    pickle_output.close()
-
-
-    pickle_output = open("pickles/" + song_name + "_beats.pickle", "wb")
-
-    pickle.dump((beat_times, tempo), pickle_output)
-    pickle_output.close()
+    create_pickle(song_name + "_beats.pickle",(beat_times, tempo))
 
     return beat_times, tempo
+
+def create_new_other_profile(song_path,song_name):
+    import librosa
+
+    y, sr = librosa.load(song_path)
+    pitches, magnitudes = librosa.core.piptrack(y=y, sr=sr)
+
+    create_pickle(song_name + "_other.pickle", (pitches, magnitudes))
+
+    return pitches,magnitudes
 
 def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name):
 
@@ -52,22 +65,37 @@ def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name)
     crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
         crepe.predict(audio=vocal_amplitude,sr=rate,step_size=display_interval_ms,viterbi=True)
 
+    print("Before confidence onset editing")
+    for i in range(len(crepe_vocal_confidence)):
+        if crepe_vocal_confidence[i] > 0.75:
+            print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
+        else:
+            print(crepe_vocal_time[i], crepe_vocal_confidence[i])
+
     crepe_vocal_confidence= adjust_vocal_onset_confidence(window_size=10, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
                                   crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_time=crepe_vocal_time)
+
+    print("after confidence onset editing")
+    for i in range(len(crepe_vocal_confidence)):
+        if crepe_vocal_confidence[i] > 0.75:
+            print(crepe_vocal_time[i], crepe_vocal_confidence[i],"<------")
+        else:
+            print(crepe_vocal_time[i], crepe_vocal_confidence[i])
+
 
     crepe_vocal_confidence = group_vocals(window_size=20, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
                                           crepe_vocal_confidence=crepe_vocal_confidence,
                                           crepe_vocal_time=crepe_vocal_time)
 
-    # first empty the file if it exists already
-    pickle_output = open("pickles/" + song_name + "_crepe.pickle", "wb")
-    pickle_output.close()
+    print("after grouping")
+    for i in range(len(crepe_vocal_confidence)):
+        if crepe_vocal_confidence[i] > 0.75:
+            print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
+        else:
+            print(crepe_vocal_time[i], crepe_vocal_confidence[i])
 
-    pickle_output = open("pickles/" + song_name + "_crepe.pickle", "wb")
-
-    pickle.dump((crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation),
-                pickle_output)
-    pickle_output.close()
+    create_pickle(song_name + "_vocal.pickle", (crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence,
+                                                crepe_vocal_activation))
 
     return crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation
 
@@ -90,10 +118,10 @@ def slope(X, Y):
     ybar = sum(Y) / len(Y)
     n = len(X)  # or len(Y)
 
-    numer = sum([xi * yi for xi, yi in zip(X, Y)]) - n * xbar * ybar
-    denum = sum([xi ** 2 for xi in X]) - n * xbar ** 2
+    numerator = sum([xi * yi for xi, yi in zip(X, Y)]) - n * xbar * ybar
+    denominator = sum([xi ** 2 for xi in X]) - n * xbar ** 2
 
-    b = numer / denum
+    b = numerator / denominator
 
     return b
 
@@ -177,32 +205,21 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
         i+= 1
 
     for i,vocal_segment in enumerate( vocal_times):
-        # print(vocal_segment)
+        for time in vocal_segment:
+            if crepe_vocal_confidence[time[1]] < 0.75 and crepe_vocal_confidence[time[1]] > 0.5:
+                crepe_vocal_confidence[time[1]] = 0.76
 
-        last_index = vocal_segment[0][1]
-        # print("last_index",last_index)
 
-        for time_and_index in vocal_segment:
-            index = time_and_index[1]
+        # if i < len(vocal_times):
 
-            if index > last_index + 1:
-                for j in range(last_index,index):
+            # print("making vocal segment have fade values")
+            # print(crepe_vocal_confidence[vocal_segment[-1][1] +1])
+            # print(crepe_vocal_confidence[vocal_segment[-1][1]+2 ])
+            # print(crepe_vocal_confidence[vocal_segment[-1][1] +3])
 
-                    # print("Promoting crepe_vocal_confidence at index ",j)
-                    crepe_vocal_confidence[j] = 0.76
-
-            last_index = index
-
-        if i < len(vocal_times):
-
-            print("making vocal segment have fade values")
-            print(crepe_vocal_confidence[vocal_segment[-1][1] +1])
-            print(crepe_vocal_confidence[vocal_segment[-1][1]+2 ])
-            print(crepe_vocal_confidence[vocal_segment[-1][1] +3])
-
-            crepe_vocal_confidence[ vocal_segment[-1][1] + 1 ] = -3
-            crepe_vocal_confidence[vocal_segment[-1][1] + 2] = -2
-            crepe_vocal_confidence[vocal_segment[-1][1] + 3] = -1
+            # crepe_vocal_confidence[ vocal_segment[-1][1] + 1 ] = -3
+            # crepe_vocal_confidence[vocal_segment[-1][1] + 2] = -2
+            # crepe_vocal_confidence[vocal_segment[-1][1] + 3] = -1
 
     return crepe_vocal_confidence
 
@@ -227,6 +244,9 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
         m = 4
 
         if crepe_vocal_confidence[i] > threshold:
+
+            print(crepe_vocal_time[i]," ",crepe_vocal_confidence[i]," ")
+
             n1 = 2*crepe_vocal_frequency[i]/1000
 
         #these statements facilitate a fade effect
@@ -251,14 +271,16 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
         point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,2, i ,screenL))
 
-    pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
-    pickle_output.close()
+    create_pickle(song_name + "_ellipses.pickle", (point_times))
 
-    pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
-
-    pickle.dump(point_times,pickle_output)
-    pickle_output.close()
-
+    # pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
+    # pickle_output.close()
+    #
+    # pickle_output = open("pickles/" + song_name + "_ellipses.pickle", "wb")
+    #
+    # pickle.dump(point_times,pickle_output)
+    # pickle_output.close()
+    #
     print("done ")
 
     return point_times
