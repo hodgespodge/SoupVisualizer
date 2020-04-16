@@ -1,23 +1,15 @@
-# from pygame_visuals import *
+
 import pygame_visuals
-# from SpleeterFunctions import *
+
 import SpleeterFunctions
 import os
 
-from PyQt5.QtGui import QIcon
-
 import sys
-from PyQt5.QtWidgets import (QWidget, QToolTip,
-    QPushButton, QApplication, QMessageBox)
-from PyQt5.QtGui import QFont
 
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QLabel, QMainWindow
 from PyQt5.QtGui import QIcon
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-# from multiprocessing import Process
 import multiprocessing
 
 class MainWindow(QMainWindow):
@@ -25,8 +17,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
-        self.song_path = ""
-        self.song =""
+        self.song_path = None
+        self.song = None
 
     def initUI(self):
 
@@ -41,6 +33,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"TestSongs","16bit")
+
+        self.list_title = QLabel("Processed Songs:")
+        layout.addWidget(self.list_title)
 
         self.listview = QListView()
 
@@ -172,7 +167,9 @@ class MainWindow(QMainWindow):
                     P.start()
 
         else:
-            print("TODO make \"please choose song\" dialogue box pop up")
+            QMessageBox.information(self, '',
+                                    "Please choose a song from the list of processed songs."
+                                    )
 
 
 if __name__ == '__main__':

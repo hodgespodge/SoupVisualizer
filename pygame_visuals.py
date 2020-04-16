@@ -1,6 +1,5 @@
 from scipy.io.wavfile import read
-from random import randint
-from numpy import fft
+
 import pygame, sys, time, os
 from PreprocessingFunctions import *
 import crepe
