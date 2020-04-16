@@ -225,22 +225,18 @@ def run(song_path):
             pass
 
 
-    color = [200,100,255]
+    color = [255,255,255]
 
 
     fullscreen_display = True
     music_paused = False
 
     beat_times_index = 0
-    crepe_times_index = 0
+
     animation_frame_index = 0
 
-
-    # colors = [[255,255,255],[255,0,0],[0,255,0],[0,0,255],[255,255,0],[0,255,255],[255,0,255],
-    #           [192,192,192],[128,128,128],[128,128,0],[128,0,0],[0,128,0],[128,0,128],[0,128,128],[0,0,128]]
-
-    colors = [[255, 0, 0],[255, 190, 0], [255, 127, 0], [255, 190, 0],[255, 255, 0],[127, 255, 0],
-              [0, 255, 0],[0, 127, 127],[0, 0, 255], [23, 21, 175],[46, 43, 95],[90, 21, 75], [139, 0, 255],[200, 0, 127]]
+    colors = [[255, 100,100],[255, 190, 100], [255, 127, 100], [255, 190, 100],[200, 200, 100],[127, 255, 100],
+              [100, 255, 100],[100, 127, 127],[100, 100, 255], [23, 21, 175],[46, 43, 95],[90, 21, 75], [139, 100, 255],[200, 100, 127]]
 
     done = False
 
@@ -281,9 +277,7 @@ def run(song_path):
                 pygame.mixer.music.pause()
                 music_paused = not music_paused
 
-            time.sleep(0.5)
-
-        screen.fill(colors[beat_times_index%len(colors)])
+            pygame.time.wait(500)
 
         pygame.event.get()
 
@@ -291,44 +285,18 @@ def run(song_path):
 
         if beat_times[beat_times_index] < player_time + 0.05:
 
+            screen.fill(colors[beat_times_index % len(colors)])
 
-            # pygame.draw.circle(screen,
-            #                    color,
-            #                    (int(2 * width / 3), int(3 * height / 4)),
-            #                    50,
-            #                    0)
             beat_times_index += 1
-
-
-        # while crepe_vocal_time[crepe_times_index] < player_time :
-        #
-        #     display_vocals(index = crepe_times_index)
-        #     crepe_times_index += 1
-
-
-        # print(crepe_vocal_time[crepe_times_index],player_time)
-
-
-        # while crepe_vocal_time[crepe_times_index] < player_time + 0.1:
-
-        # print(player_time * 44100)
-
-        # print(player_time * 44100,animation_frames[animation_frame_index])
 
         while animation_frames[animation_frame_index] < player_time:
 
             for shape in ellipses[animation_frame_index]:
-                pygame.draw.lines(screen, color, True, shape,5)
+                pygame.draw.lines(screen, color, True, shape,4)
 
             animation_frame_index +=1
 
-        # if player_time > [animation_frame_index]
-
-        crepe_times_index += 1
-
         clock.tick(animation_fps - 1)
-
-        # time.sleep(display_interval_s)
 
         pygame.display.update()
 

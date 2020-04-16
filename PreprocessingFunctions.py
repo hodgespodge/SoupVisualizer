@@ -25,6 +25,8 @@ def create_16_bit_wav(songpath,outpath):
 
 def create_pickle(file_name,data):
 
+    print("creating pickle for",file_name)
+
     #empty file if already exists
     pickle_output = open("pickles/" + file_name, "wb")
     pickle_output.close()
@@ -33,6 +35,7 @@ def create_pickle(file_name,data):
     pickle_output = open("pickles/" + file_name, "wb")
     pickle.dump(data, pickle_output)
     pickle_output.close()
+    print("done creating pickle")
 
 
 def create_new_beat_tempo_profile(song_path, song_name):
@@ -246,9 +249,9 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
     print("animating ",len(animation_frames),"frames")
 
-    for i in animation_frames:
 
-        # print(i)
+
+    for i,audio_frame in enumerate(animation_frames):
 
         # if i % 100 == 0:
         #     print((i/len(vocal_amplitude)) * 100,"%")
@@ -262,42 +265,24 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
         # print(i)
 
-        i = math.floor(i)
-        # abs((drum_amplitude[int(t * 44100)][0] + drum_amplitude[int(t * 44100)][1]) // 200)
+        audio_frame = math.floor(audio_frame)
 
-        # print("left side",vocal_amplitude[i][0])
-        # print("right side",vocal_amplitude[i][1])
+
+        ####ATTEMPT 1
+        # n1 =(( abs(vocal_amplitude[audio_frame][0] + vocal_amplitude[audio_frame][1]) )/ 1000) + 1
         #
-        # print(abs(vocal_amplitude[i][0] + vocal_amplitude[i][1]))
+        # a = (( abs(other_amplitude[audio_frame][0] + other_amplitude[audio_frame][1]) )/ 1000) + 1
 
-        # if abs(vocal_amplitude[i][0] + vocal_amplitude[i][1])> 1000:
-
-
-
-        n1 =(( abs(vocal_amplitude[i][0] + vocal_amplitude[i][1]) )/ 1000000) + 1
-        print(n1)
-
-        # if other_amplitude[i] > 200:
-        #     a = 2 * other_amplitude[i]/1000
-
-        # if crepe_vocal_confidence[i] > threshold:
+       ####ATTEMPT 2
+        # b =(( abs(vocal_amplitude[audio_frame][0] + vocal_amplitude[audio_frame][1]) )/ 1000) + 3
         #
-        #     # print(crepe_vocal_time[i]," ",crepe_vocal_confidence[i]," ")
-        #
-        #     n1 = 2*crepe_vocal_frequency[i]/1000
+        # a = (( abs(other_amplitude[audio_frame][0] + other_amplitude[audio_frame][1]) )/ 1000) + 3
 
-        #these statements facilitate a fade effect
-        # elif crepe_vocal_confidence[i] == -3 or crepe_vocal_confidence[i] == -2 or crepe_vocal_confidence[i] == -1 :
-        #     # print("fade")
-        #
-        #     a,b,n1,n2,n3,m=last_variables
-        #
-        #     # a = a*0.1 + 1
-        #     # b = b*0.1 + 1
-        #     n1= n1*0.5 + 1
-        #     # n2= n2*0.1 + 1
-        #     # n3= n3*0.1 + 1
-        #     # m= m*0.1 + 1
+        ####ATTEMPT 3
+        n1 = ((abs(vocal_amplitude[audio_frame][0] + vocal_amplitude[audio_frame][1])) * 2 / 1000)
+        n2 = n1
+        n3 = ((abs(other_amplitude[audio_frame][0] + other_amplitude[audio_frame][1])) / 1000) + 3
+
 
 
         last_variables = (a,b,n1,n2,n3,m)
@@ -306,7 +291,7 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
         radii = PygameExperimentation.Supershape(a,b,m,n1,n2,n3)
 
-        point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,2, i ,screenL))
+        point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,2, math.floor(i/2) ,screenL))
 
     create_pickle(song_name + "_ellipses.pickle", (point_times))
 
