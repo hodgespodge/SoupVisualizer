@@ -104,8 +104,6 @@ class MainWindow(QMainWindow):
 
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        # fileName, _ = QFileDialog.getOpenFileName(self, "Wav file chooser", "",
-        #                                           "All Files (*);;Python Files (*.py);;Wav Files(*.wav)", options=options)
         fileName, _ = QFileDialog.getOpenFileName(self, "Wav file chooser", "",
                                                   "Wav Files(*.wav);;All Files (*)",
                                                   options=options)
