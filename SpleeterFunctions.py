@@ -43,13 +43,12 @@ def spleet_wav(songpath,outfolder,num_stems):
 
     print("done merging other and piano")
 
-# def overlap_audios(audio1,audio2):
-#     print("creating audiosegments")
-#     audio1 = AudioSegment.from_raw(audio1)
-#     audio2 = AudioSegment.from_raw(audio2)
-#
-#     print("overlaying")
-#     audio_out = audio1.overlay(audio2)
-#     print("returning overlay")
-#
-#     return audio_out.get_array_of_samples()
+def all_song_processing(fileName,split_wav_16_output,wav_16_output):
+
+    import pygame_visuals
+
+    os.remove(wav_16_output)
+
+    spleet_wav(fileName, split_wav_16_output, 5)
+    pygame_visuals.create_16_bit_wav(fileName, wav_16_output)
+    pygame_visuals.create_instrument_charactaristics(fileName)

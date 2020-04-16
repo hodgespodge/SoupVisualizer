@@ -9,10 +9,6 @@ def get_fundemental_frequency(wav_file_path):
     import parselmouth
     snd = parselmouth.Sound(wav_file_path)
 
-
-    print("seconds of song * 44100 = ",len(snd))
-
-
     return snd.to_pitch()
 
 def create_16_bit_wav(songpath,outpath):
@@ -54,8 +50,6 @@ def create_new_beat_tempo_profile(song_path, song_name):
 def create_new_other_profile(y,sr,song_path,song_name,display_interval_ms):
     import librosa
 
-    import math
-
     print("Creating new other profile")
     y, sr = librosa.load(song_path)
 
@@ -75,50 +69,10 @@ def create_new_vocal_profile(rate,vocal_amplitude,display_interval_ms,song_name)
     crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation = \
         crepe.predict(audio=vocal_amplitude,sr=rate,step_size=display_interval_ms,viterbi=True)
 
-    # print("Before confidence onset editing")
-    # for i in range(len(crepe_vocal_confidence)):
-    #     if crepe_vocal_confidence[i] > 0.75:
-    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
-    #     else:
-    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i])
-    #
-    # crepe_vocal_confidence= adjust_vocal_onset_confidence(window_size=10, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
-    #                               crepe_vocal_confidence=crepe_vocal_confidence, crepe_vocal_time=crepe_vocal_time)
-    #
-    # print("after confidence onset editing")
-    # for i in range(len(crepe_vocal_confidence)):
-    #     if crepe_vocal_confidence[i] > 0.75:
-    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i],"<------")
-    #     else:
-    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i])
-    #
-    #
-    # crepe_vocal_confidence = group_vocals(window_size=20, threshold=0.75, crepe_vocal_frequency=crepe_vocal_frequency,
-    #                                       crepe_vocal_confidence=crepe_vocal_confidence,
-    #                                       crepe_vocal_time=crepe_vocal_time)
-    #
-    # print("after grouping")
-    # for i in range(len(crepe_vocal_confidence)):
-    #     if crepe_vocal_confidence[i] > 0.75:
-    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i], "<------")
-    #     else:
-    #         print(crepe_vocal_time[i], crepe_vocal_confidence[i])
-
     create_pickle(song_name + "_vocal.pickle", (crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence,
                                                 crepe_vocal_activation))
 
     return crepe_vocal_time, crepe_vocal_frequency, crepe_vocal_confidence, crepe_vocal_activation
-
-
-def wav_to_mp3(songpath,outpath):
-    from pydub import AudioSegment
-    AudioSegment.converter = "C:\\ffmpeg\\bin\\ffmpeg.exe"
-    AudioSegment.ffmpeg = "C:\\ffmpeg\\bin\\ffmpeg.exe"
-    AudioSegment.ffprobe = "C:\\ffmpeg\\bin\\ffprobe.exe"
-
-
-    sound = AudioSegment.from_mp3(songpath)
-    sound.export(outpath, format="wav")
 
 def slope(X, Y):
 
@@ -152,8 +106,6 @@ def adjust_vocal_onset_confidence(window_size, threshold,crepe_vocal_frequency,c
         con_slope = slope(crepe_vocal_time[i : i + window_size], confidence)
 
         if average_confidence > threshold:
-            # print(crepe_vocal_time[i], str(round(average_frequency, 2)),str(round(average_confidence, 2))," <---------@@")
-
             #rounds the vocal confidence so animations are less eratic
             crepe_vocal_confidence[i] = average_confidence
 
@@ -162,13 +114,9 @@ def adjust_vocal_onset_confidence(window_size, threshold,crepe_vocal_frequency,c
             #updates vocal confidence to better match steep onsets
             crepe_vocal_confidence[i] = threshold + 0.1*(average_confidence * average_confidence* con_slope)%10
 
-            # print(crepe_vocal_time[i],str(round(average_frequency, 2)),str(round(average_confidence, 2))," <-------",str(round(con_slope, 2)),str(round(crepe_vocal_confidence[i], 2)))
-
         else:
 
             crepe_vocal_confidence[i] = average_confidence
-
-            # print(crepe_vocal_time[i],str(round(average_frequency, 2)),str(round(average_confidence, 2)))
 
     return crepe_vocal_confidence
 
@@ -189,7 +137,6 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
                 vocal_bin = []
 
             vocal_bin.append((crepe_vocal_time[i],i))
-            # vocal_bin[i] = crepe_vocal_time[i]
             last_vocal_time = crepe_vocal_time[i]
 
     vocal_times.pop(0)
@@ -219,21 +166,9 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
             if crepe_vocal_confidence[time[1]] < 0.75 and crepe_vocal_confidence[time[1]] > 0.5:
                 crepe_vocal_confidence[time[1]] = 0.76
 
-
-        # if i < len(vocal_times):
-
-            # print("making vocal segment have fade values")
-            # print(crepe_vocal_confidence[vocal_segment[-1][1] +1])
-            # print(crepe_vocal_confidence[vocal_segment[-1][1]+2 ])
-            # print(crepe_vocal_confidence[vocal_segment[-1][1] +3])
-
-            # crepe_vocal_confidence[ vocal_segment[-1][1] + 1 ] = -3
-            # crepe_vocal_confidence[vocal_segment[-1][1] + 2] = -2
-            # crepe_vocal_confidence[vocal_segment[-1][1] + 3] = -1
-
     return crepe_vocal_confidence
 
-def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_frequency,crepe_vocal_time,song_name,vocal_amplitude,other_amplitude,screenL = 1980,screenH=1080,animation_frames = []):
+def create_new_ellipse_profile(song_name,vocal_amplitude,other_amplitude,screenL = 1980,screenH=1080,animation_frames = []):
 
     print("Creating Ellipse profile")
 
@@ -242,19 +177,10 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
 
     point_times = []
 
-    # for i in range(len(crepe_vocal_time)):
-
-    print("animation frames")
-    print(animation_frames)
-
-    print("animating ",len(animation_frames),"frames")
-
-
-
     for i,audio_frame in enumerate(animation_frames):
 
-        # if i % 100 == 0:
-        #     print((i/len(vocal_amplitude)) * 100,"%")
+        if i % 100 == 0:
+            print((audio_frame/len(vocal_amplitude)) * 100,"%")
 
         a = 1
         b = 1
@@ -263,31 +189,13 @@ def create_new_ellipse_profile(threshold,crepe_vocal_confidence,crepe_vocal_freq
         n3 = 1
         m = 4
 
-        # print(i)
-
         audio_frame = math.floor(audio_frame)
 
-
-        ####ATTEMPT 1
-        # n1 =(( abs(vocal_amplitude[audio_frame][0] + vocal_amplitude[audio_frame][1]) )/ 1000) + 1
-        #
-        # a = (( abs(other_amplitude[audio_frame][0] + other_amplitude[audio_frame][1]) )/ 1000) + 1
-
-       ####ATTEMPT 2
-        # b =(( abs(vocal_amplitude[audio_frame][0] + vocal_amplitude[audio_frame][1]) )/ 1000) + 3
-        #
-        # a = (( abs(other_amplitude[audio_frame][0] + other_amplitude[audio_frame][1]) )/ 1000) + 3
-
-        ####ATTEMPT 3
         n1 = ((abs(vocal_amplitude[audio_frame][0] + vocal_amplitude[audio_frame][1])) * 2 / 1000)
         n2 = n1
         n3 = ((abs(other_amplitude[audio_frame][0] + other_amplitude[audio_frame][1])) / 1000) + 3
 
-
-
         last_variables = (a,b,n1,n2,n3,m)
-
-        #TODO ADD OTHER INSTRUMENT VALUES HERE
 
         radii = PygameExperimentation.Supershape(a,b,m,n1,n2,n3)
 
