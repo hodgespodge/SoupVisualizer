@@ -104,8 +104,11 @@ class MainWindow(QMainWindow):
 
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
-                                                  "All Files (*);;Python Files (*.py)", options=options)
+        # fileName, _ = QFileDialog.getOpenFileName(self, "Wav file chooser", "",
+        #                                           "All Files (*);;Python Files (*.py);;Wav Files(*.wav)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, "Wav file chooser", "",
+                                                  "Wav Files(*.wav);;All Files (*)",
+                                                  options=options)
         if fileName:
 
             self.song = os.path.basename(fileName)
@@ -159,7 +162,9 @@ class MainWindow(QMainWindow):
             else:
                 for child in children_processes:
                     if child.name == "spleeting_" + self.song:
-                        print("Unable to visualize ",self.song)
+                        QMessageBox.information(self, '',
+                                                "Unable to play. Still processing song."
+                                                )
                         acceptable_song = False
 
                 if acceptable_song:

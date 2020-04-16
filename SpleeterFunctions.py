@@ -47,7 +47,10 @@ def all_song_processing(fileName,split_wav_16_output,wav_16_output):
 
     import pygame_visuals
 
-    os.remove(wav_16_output)
+    try:
+        os.remove(wav_16_output)
+    except:
+        pass
 
     spleet_wav(fileName, split_wav_16_output, 5)
     pygame_visuals.create_16_bit_wav(fileName, wav_16_output)
