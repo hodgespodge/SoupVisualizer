@@ -168,12 +168,12 @@ def group_vocals(window_size, threshold,crepe_vocal_frequency,crepe_vocal_confid
 
     return crepe_vocal_confidence
 
-def create_new_ellipse_profile(song_name,vocal_amplitude,other_amplitude,screenL = 1980,screenH=1080,animation_frames = []):
+def create_new_ellipse_profile(song_name,vocal_amplitude,other_amplitude,num_points,screenL = 1980,screenH=1080,animation_frames = []):
 
     print("Creating Ellipse profile")
 
     import math
-    import PygameExperimentation
+    import EllipseGeneration
 
     point_times = []
 
@@ -187,7 +187,7 @@ def create_new_ellipse_profile(song_name,vocal_amplitude,other_amplitude,screenL
         n1 = 1
         n2 = 1
         n3 = 1
-        m = 4
+        m = 4 #Number of corners on shape
 
         audio_frame = math.floor(audio_frame)
 
@@ -197,9 +197,9 @@ def create_new_ellipse_profile(song_name,vocal_amplitude,other_amplitude,screenL
 
         last_variables = (a,b,n1,n2,n3,m)
 
-        radii = PygameExperimentation.Supershape(a,b,m,n1,n2,n3)
+        radii = EllipseGeneration.Supershape(a, b, m, n1, n2, n3, num_points=num_points)
 
-        point_times.append(PygameExperimentation.drawShapes(radii,screenL/2,screenH/2,2, math.floor(i/2) ,screenL))
+        point_times.append(EllipseGeneration.drawShapes(radii, screenL / 2, screenH / 2, 2, math.floor(i / 2), screenL))
 
     create_pickle(song_name + "_ellipses.pickle", (point_times))
 

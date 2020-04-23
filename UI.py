@@ -6,11 +6,25 @@ import os
 
 import sys
 
-from PyQt5.QtGui import QIcon
-
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 import multiprocessing
+
+class ListViewRMB(QListView):
+
+    def __init__(self,RMBFunction,*args, parent=None):
+        QListView.__init__(self, parent)
+        self.RMBFunction = RMBFunction
+        self.RMBFunction_args = args
+
+    def mousePressEvent(self, event):
+
+        QListView.mousePressEvent(self, event)
+
+        if event.button() == Qt.RightButton:
+
+            self.RMBFunction(*self.RMBFunction_args)
 
 class MainWindow(QMainWindow):
 
@@ -19,6 +33,9 @@ class MainWindow(QMainWindow):
         self.initUI()
         self.song_path = None
         self.song = None
+        self.num_points = 100
+        res = app.desktop().screenGeometry()
+        self.screen_resolution = (res.width(),res.height())
 
     def initUI(self):
 
@@ -26,18 +43,31 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Soup Visualizer')
         self.setWindowIcon(QIcon('soupicon.png'))
 
+        animation_points_action = QAction("Number of animation points",self)
+        animation_points_action.setStatusTip("set the fidelity and file size of generated animations")
+        animation_points_action.triggered.connect(self.setAnimationPoints)
+
+        screen_resolution_action = QAction("Set Screen Resolution",self)
+        screen_resolution_action.setStatusTip("Should probably match your screen")
+        screen_resolution_action.triggered.connect(self.setScreenResolution)
+
+        menu = self.menuBar()
+        optionsbar = menu.addMenu('&Generation Options')
+        optionsbar.addAction(animation_points_action)
+        optionsbar.addAction(screen_resolution_action)
+
         layout = QVBoxLayout()
 
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"TestSongs","16bit")
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"SongCopies","16bit")
 
         self.list_title = QLabel("Processed Songs:")
         layout.addWidget(self.list_title)
 
-        self.listview = QListView()
+        self.listview = ListViewRMB(self.right_click_list, )
 
         layout.addWidget(self.listview)
 
@@ -57,17 +87,95 @@ class MainWindow(QMainWindow):
         self.btn1 = QPushButton('Play Song', self)
         layout.addWidget(self.btn1)
 
-        self.btn1.setToolTip('TODO')
+        self.btn1.setToolTip('Plays the currently selected song with visuals')
         self.btn1.resize(self.btn1.sizeHint())
         self.btn1.clicked.connect(self.on_click_run)
 
         self.btn2 = QPushButton('Select song to process', self)
         layout.addWidget(self.btn2)
-        self.btn2.setToolTip('TODO')
+        self.btn2.setToolTip('Enter a file browser to choose a wav song for processing')
         self.btn2.resize(self.btn1.sizeHint())
         self.btn2.clicked.connect(self.openFileNameDialog)
-
         self.show()
+
+    def right_click_list(self):
+        song_name = self.listview.selectedIndexes()[0].data()
+
+        message = "Would you like to delete "+song_name+"'s stored data? This will only delete files created by Soup Visualizer and not the original wav file."
+        reply = QMessageBox.question(self, '',
+                                     message, QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+
+            self.song = None
+            self.currently_selected_song_textbox.setText("No song selected yet")
+
+            print("deleting 16bit song copy")
+            try:
+
+                os.remove(os.path.join(os.path.dirname(os.path.realpath(__file__)), "SongCopies", "16bit", song_name))
+            except:
+                pass
+
+            print("deleting pickles")
+            try:
+                os.remove("pickles/" + song_name + "_beats.pickle")
+            except:
+                pass
+            try:
+                os.remove("pickles/" + song_name + "_ellipses.pickle")
+            except:
+                pass
+
+            print("deleting split audio files")
+            try:
+                os.remove("SpleeterOutputs_16-bit" + "/" + "5stems" + "/" + song_name + "_" + "other" + "_16-bit.wav")
+            except:
+                print("failed to delete" + "SpleeterOutputs_16-bit" + "/" + song_name + "_" + "other" + "_16-bit.wav")
+
+            try:
+                os.remove("SpleeterOutputs_16-bit" + "/" + "5stems" + "/" + song_name + "_" + "bass" + "_16-bit.wav")
+            except:
+                print("failed to delete" + "SpleeterOutputs_16-bit" + "/" + song_name + "_" + "bass" + "_16-bit.wav")
+
+            try:
+                os.remove("SpleeterOutputs_16-bit" + "/" + "5stems" + "/" + song_name + "_" + "vocals" + "_16-bit.wav")
+            except:
+                print("failed to delete" + "SpleeterOutputs_16-bit" + "/" + song_name + "_" + "vocals" + "_16-bit.wav")
+
+            try:
+                os.remove("SpleeterOutputs_16-bit" + "/" + "5stems" + "/" + song_name + "_" + "drums" + "_16-bit.wav")
+            except:
+                print("failed to delete" + "SpleeterOutputs_16-bit" + "/" + song_name + "_" + "drums" + "_16-bit.wav")
+
+        else:
+            pass
+
+    def setAnimationPoints(self):
+
+        num_points, done = QInputDialog.getInt(self,'Animation Points','Larger numbers require more disk space',self.num_points, 10,2000,1)
+        if done:
+            self.num_points= num_points
+
+    def setScreenResolution(self):
+
+        item_strings = {'(640, 360)':(640,360), '(800, 600)':(800, 600), '(1024, 768)':(1024, 768),
+                        '(1280, 720)':(1280, 720),'(1280, 800)':(1280, 800), '(1280, 1024)':(1280, 1024),
+                        '(1360, 768)':(1360, 768),'(1366, 768)':(1366, 768),'(1440, 900)':(1440, 900),
+                        '(1536, 864)':(1536, 864), '(1600, 900)':(1600, 900),'(1680, 1050)':(1680, 1050),
+                        '(1920, 1080)':(1920, 1080), '(1920, 1200)':(1920, 1200),'(2048, 1152)':(2048, 1152),
+                        '(2560, 1080)':(2560, 1080),'(2560, 1440)':(2560, 1440),'(3440, 1440)':(3440, 1440),
+                        '(3840, 2160)':(3840, 2160)}
+
+        items = item_strings.keys()
+
+        chosen_resolution, reply = QInputDialog.getItem(self, "select screen resolution",
+                                        "common resolutions", items, 0, False)
+
+        if reply and chosen_resolution:
+
+            self.screen_resolution = item_strings[chosen_resolution]
 
     def closeEvent(self, event):
 
@@ -84,7 +192,11 @@ class MainWindow(QMainWindow):
                                          QMessageBox.No, QMessageBox.No)
 
                 if reply == QMessageBox.Yes:
-                    child.close()
+
+                    try:
+                        child.close()
+                    except:
+                        pass
                 else:
                     event.ignore()
                     quit = False
@@ -95,7 +207,7 @@ class MainWindow(QMainWindow):
     def preprocessed_song_options(self,item):
 
         item_data = self.listview.selectedIndexes()[0].data()
-        self.song_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"TestSongs","16bit",item_data)
+        self.song_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"SongCopies","16bit",item_data)
         self.song = os.path.basename(item_data)
         self.currently_selected_song_textbox.setText(self.song)
 
@@ -113,7 +225,7 @@ class MainWindow(QMainWindow):
 
             if fileName.endswith(".wav"):
 
-                if os.path.isfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",self.song)):
+                if os.path.isfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "SongCopies", "16bit",self.song)):
 
                     reply = QMessageBox.question(self, '',
                                                  "Song file has already been pre-processed. Would you like to process again"
@@ -130,19 +242,19 @@ class MainWindow(QMainWindow):
 
                 if reply == QMessageBox.Yes:
 
-                    wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TestSongs", "16bit",self.song)
+                    wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SongCopies", "16bit",self.song)
 
                     split_wav_16_output = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                        "SpleeterOutputs_16-bit", "5stems")
 
-                    P = multiprocessing.Process(name="spleeting_"+self.song,target=SpleeterFunctions.all_song_processing,args=(fileName,split_wav_16_output,wav_16_output,))
+                    P = multiprocessing.Process(name="spleeting_"+self.song,target=SpleeterFunctions.all_song_processing,args=(fileName,split_wav_16_output,wav_16_output,self.num_points,self.screen_resolution,))
                     P.start()
                     self.song_path = fileName
                     self.currently_selected_song_textbox.setText(self.song)
 
             else:
                 QMessageBox.information(self, '',
-                                        "File must be of type .wav!"
+                                        "File must be of type .wav"
                                         )
 
 
@@ -166,7 +278,7 @@ class MainWindow(QMainWindow):
                         acceptable_song = False
 
                 if acceptable_song:
-                    P = multiprocessing.Process(name="visualizer_window",target=pygame_visuals.run,args=(self.song_path,))
+                    P = multiprocessing.Process(name="visualizer_window",target=pygame_visuals.run,args=(self.song_path,self.num_points,self.screen_resolution,))
                     P.start()
 
         else:
@@ -179,3 +291,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MainWindow()
     sys.exit(app.exec_())
+
