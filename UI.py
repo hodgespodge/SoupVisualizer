@@ -29,6 +29,8 @@ class ListViewRMB(QListView):
 class MainWindow(QMainWindow):
 
     def __init__(self):
+
+        self.CreateDirectories()
         super().__init__()
         self.initUI()
         self.song_path = None
@@ -36,6 +38,8 @@ class MainWindow(QMainWindow):
         self.num_points = 100
         res = app.desktop().screenGeometry()
         self.screen_resolution = (res.width(),res.height())
+
+
 
     def initUI(self):
 
@@ -98,6 +102,15 @@ class MainWindow(QMainWindow):
         self.btn2.clicked.connect(self.openFileNameDialog)
         self.show()
 
+    # Creates the file structure for saving files
+    def CreateDirectories(self):
+        try:
+            os.mkdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "SongCopies", "16bit"))
+            os.mkdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "SpleeterOutputs_16-bit", "5stems"))
+            os.mkdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "pickles"))
+        except:
+            pass
+
     def right_click_list(self):
         song_name = self.listview.selectedIndexes()[0].data()
 
@@ -113,7 +126,6 @@ class MainWindow(QMainWindow):
 
             print("deleting 16bit song copy")
             try:
-
                 os.remove(os.path.join(os.path.dirname(os.path.realpath(__file__)), "SongCopies", "16bit", song_name))
             except:
                 pass

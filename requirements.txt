@@ -1,0 +1,15 @@
+Keras-Applications>=1.0.8
+Keras-Preprocessing>=1.1.0
+librosa>=0.7.2
+numpy>=1.18.1
+pydub>=0.23.1
+pygame>=1.9.6
+PyQt5>=5.14.2
+PyQt5-sip>=12.7.2
+scipy>=1.4.1
+spleeter>=1.4.9
+tensorboard>=1.14.0
+tensorflow>=1.14.0
+tensorflow-estimator>=1.14.0
+wavio>=0.0.4
+
