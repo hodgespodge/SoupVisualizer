@@ -97,6 +97,7 @@ def run(song_path,num_points,screen_resolution):
     pygame.mixer.pre_init(44100, -16, 2, 1024)
     pygame.mixer.init()
     pygame.mixer.music.load(song_path)
+    pygame.mixer.music.set_endevent(pygame.QUIT)
     pygame.mixer.music.play()
     now = time.time()
 
@@ -116,6 +117,10 @@ def run(song_path,num_points,screen_resolution):
 
     for i in range(len(animation_frames)):
         animation_frames[i] = animation_frames[i] / 44100
+
+    print("beat times",beat_times)
+    print("len beat times",len(beat_times))
+
 
     while not done:
 
@@ -157,15 +162,13 @@ def run(song_path,num_points,screen_resolution):
 
         player_time = pygame.mixer.music.get_pos()/1000
 
-
-
-        if beat_times[beat_times_index] < player_time + 0.05:
+        if beat_times_index < len(beat_times) and beat_times[beat_times_index] < player_time + 0.02:
 
             screen.fill(background_colors[beat_times_index % len(background_colors)])
 
             beat_times_index += 1
 
-        while animation_frames[animation_frame_index] < player_time:
+        while animation_frame_index < len(animation_frames) and animation_frames[animation_frame_index] < player_time:
 
             for shape in ellipses[animation_frame_index]:
                 pygame.draw.lines(screen, line_color, True, shape,4)

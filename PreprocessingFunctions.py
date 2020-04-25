@@ -39,7 +39,7 @@ def create_new_beat_tempo_profile(song_path, song_name):
 
     y, sr = librosa.load(song_path)
 
-    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr,trim=False)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
     create_pickle(song_name + "_beats.pickle",(beat_times, tempo))
